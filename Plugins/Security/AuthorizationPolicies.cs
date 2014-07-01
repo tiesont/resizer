@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -24,17 +24,17 @@ namespace ImageResizer.Plugins.Security
         //http://s3.amazonaws.com/doc/s3-developer-guide/RESTAuthentication.html
         //http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html
  
-    interface IAuthorizationResponse{
-        bool AllowRequest{get;}
+    public interface IAuthorizationResponse{
+         bool AllowRequest{get;}
 
     }
      class AuthSuccess:IAuthorizationResponse{
-         bool AllowRequest{get{return true;}}
+         public bool AllowRequest{get{return true;}}
     }
     class AuthFail:IAuthorizationResponse{
-         bool AllowRequest{get{return false;}}
+         public bool AllowRequest{get{return false;}}
     }
-    interface IAuthorizationPolicy{
+    public interface IAuthorizationPolicy{
         IAuthorizationResponse AuthorizeRequest(IDictionary<string, object> request);
     }
     /// <summary>
