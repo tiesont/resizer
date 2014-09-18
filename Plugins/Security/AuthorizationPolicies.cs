@@ -3,29 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ImageResizer;
 
 namespace ImageResizer.Plugins.Security
 {
-    //Encryption; transmit the salt, IV, and access id.
-    //Signing; 
 
-          
-        //ri-policies = comma delimited list; (optional) Ex. expires, read, ip, anyquery
-        //ri-expires = seconds since epoch (when access terminates) (optional, must be used with policy)
-        //ri-keyid = public access ID matching the secret key used
-        //ri-allowed-ips=
-        //ri-allowed-[key]=comma delimited list of URL-encoded values permitted to [key]
-
-        //sorted querystring = querystring + ri-policies + ri-keyid -> lowercase keys -> sort
-        //canoncializedresource = path + sorted querystring  ri-policies
-        //ri-signature = urlb64(key id) + "|" + base64u(hmacsha256(secret, hmacsha256(UTF8(canoncializedresource))))
-        //http://docs.aws.amazon.com/general/latest/gr/sigv4-create-canonical-request.html
-        //http://stackoverflow.com/questions/23605869/any-holes-in-securing-a-http-request-with-hmac-using-only-the-http-method-and-ur
-        //http://s3.amazonaws.com/doc/s3-developer-guide/RESTAuthentication.html
-        //http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/PrivateContent.html
- 
     public interface IAuthorizationResponse{
-         bool AllowRequest{get;}
+        bool AllowRequest{get;}
 
     }
      class AuthSuccess:IAuthorizationResponse{
@@ -44,15 +28,20 @@ namespace ImageResizer.Plugins.Security
 
          public IAuthorizationResponse AuthorizeRequest(IDictionary<string,object> request)
         {
+            
  	        if ("GET".Equals(request["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase) ||
                 "HEAD".Equals(request["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase)){
                 return new AuthSuccess();
             } else{
                 return new AuthFail();
             }
+             //var inst = new Instructions(){ Width = 1; Height = 2, Format= "png", Mode = }
+             
         }
     }
 
+
+ 
 
     //Policy "ip" - allow only IP Address, list, or range. Ipv4 and IPv6.
     //Policy "anyquery" - allow any querystring (locks the path, but not the commands)
@@ -61,8 +50,8 @@ namespace ImageResizer.Plugins.Security
 
         //ri-policies = comma delimited list; (optional) Ex. expires, read, ip, anyquery
         //ri-expires = seconds since epoch (when access terminates) (optional, must be used with policy)
-        //ri-allowed-ips=
-        //ri-allowed-[key]=comma delimited list of URL-encoded values permitted to [key]
+        //ri-whitelisted-ips=
+        //ri-allowedvalues-[key]=comma delimited list of URL-encoded values permitted to [key]
 
         //sorted querystring = querystring + ri-policies + ri-keyid -> lowercase keys -> sort
         //canoncializedresource = path + sorted querystring  ri-policies
