@@ -6,58 +6,37 @@ using System.Threading.Tasks;
 
 namespace ImageResizer.Imaging
 {
-    public enum BitmapPixelFormat {
-        None = 0,
-        Bgr24 = 24,
-        Bgra32 = 32,
-        Gray8 = 8, 
-        Indexed8 = 7
-    };
-    public enum BitmapCompositingMode{
-        Replace_self = 0, 
-        Blend_with_self  =1,
-        Blend_with_matte = 2
-    };
-
     /// <summary>
-    /// Represents a truecolor or grayscale bitmap region. Does not support indexed operations.
+    /// 
     /// </summary>
-    public interface IBitmapRegion: IDisposable
-    {   
+    /// <remarks>
+    /// Does not allow upside-down (win bmp, freeimage) representation. Vertical flip during lock/unlock if needed.
+    /// </remarks>
+    public interface IBitmapRegion : ITrackable
+    {
         /// <summary>
         /// The width of the region or bitmap, in pixels
         /// </summary>
         int Width { get; }
         /// <summary>
-        /// The height of the region or bitmap, in pixels
+        /// The height of the region or bitmap, in pixels; I.e, the number of scan rows.
         /// </summary>
         int Height { get; }
 
         /// <summary>
-        /// The byte length of each row (will include unused padding if this is a cropped region)
+        /// The byte length of each row  (include unused padding, common for alignment or crop purposes)
         /// </summary>
         int Stride { get; }
 
         /// <summary>
-        /// pointer to pixel 0,0 in the region; should be of length > h * stride
+        /// pointer to the first byte in the region region; should be of length > h * stride
         /// </summary>
-        IntPtr Pixel0 {get;}
+        IntPtr Byte0 { get; }
 
         /// <summary>
-        /// The number of bytes per pixel. (grayscale=1, 24-bit = 3, 32-bit = 4)
+        /// The number of bytes we are permitted to access following Pixel0. Should be >= Stride * Height
         /// </summary>
-        int BytesPerPixel { get; }
-
-        /// <summary>
-        /// If true, the alpha channel will be honored if present.
-        /// </summary>
-        bool RespectAlpha { get;}
-
-        /// <summary>
-        /// If PixelsWriteable=false, an InvalidOperationException may occur. 
-        /// Results in RespectAlpha being set to true.
-        /// </summary>
-        void MarkAlphaUsed();
+        long ByteCount { get; }
 
         /// <summary>
         /// If true, we may modify any pixels
@@ -65,64 +44,30 @@ namespace ImageResizer.Imaging
         bool PixelsWriteable { get; }
 
         /// <summary>
-        /// Changes PixelsWriteable and PaddingWriteable to false
-        /// </summary>
-        void MarkReadonly();
-
-        /// <summary>
         /// If true, we may modify any padding bytes between rows (equivalent to stride_readonly)
         /// </summary>
         bool PaddingWriteable { get; }
 
         /// <summary>
-        /// The memory layout of each pixel
+        /// The number of bytes per pixel, or -1 if pixels do not align to byte boundaries
         /// </summary>
-        BitmapPixelFormat PixelFormat {get;}
+        int BytesPerPixel { get; }
 
         /// <summary>
-        /// If other images are drawn onto this canvas region, this setting controls how they will be composed.
+        /// The pixel format
         /// </summary>
-        BitmapCompositingMode Compositing {get; set;}
+        IPixelFormat Format { get; }
 
         /// <summary>
-        /// Gets the matte color to use when compositing (Blend_with_matte). If null, treat as transparent.
+        /// Notify the implementation that pixels have been changed, and may need to be saved (if this is a temporary buffer).
         /// </summary>
-        /// <returns></returns>
-        byte[] GetMatte();
+        void MarkChanged();
 
         /// <summary>
-        /// Changes the matte color to use when compositing (Blend_with_matte).
+        /// Closes the region, potentially causing any changes to be 
+        /// copied back into the parent frame (if an intermediate buffer was required).
         /// </summary>
-        /// <param name="color"></param>
-        void SetMatte(byte[] color);
-
-        /// <summary>
-        /// Returns the palette used by this image, if indexed. Otherwise returns null. 
-        /// Each pixel uses 4 bytes; BGRA format.
-        /// </summary>
-        /// <returns></returns>
-        byte[] GetPalette();
-
-        /// <summary>
-        /// Replace the palette used by this image, if indexed. Each pixel uses 4 bytes, BGRA format.
-        /// </summary>
-        /// <param name="palette"></param>
-        void SetPalette(byte[] palette);
-
-
-        /// <summary>
-        /// If true, unmanaged resources for this object have been disposed, and it may not be used
-        /// </summary>
-        bool Disposed { get; }
-
-        /// <summary>
-        /// Returns an enumeration of objects - which, if disposed, could break this object.
-        /// </summary>
-        IEnumerable<object> ReliantOn{ get; }
-
-
-        Stack<Action> OnDispose{get;}
-
-     
+        void Close();
     }
+    
 }

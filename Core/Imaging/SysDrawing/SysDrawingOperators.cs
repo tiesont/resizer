@@ -20,12 +20,13 @@ namespace ImageResizer.Imaging
 
           public  Bitmap WrapWithGdiBitmap()
           {
-              return new Bitmap(r.Width, r.Height, r.Stride, SysDrawingPixelFormat(), r.Pixel0);
+              return new Bitmap(r.Width, r.Height, r.Stride, SysDrawingPixelFormat(), r.Byte0);
           }
 
           public PixelFormat SysDrawingPixelFormat()
           {
-              if (r.PixelFormat == BitmapPixelFormat.Indexed8) return PixelFormat.Format8bppIndexed;
+              r.Format.
+              if (r.Format == BitmapPixelFormat.Indexed8) return PixelFormat.Format8bppIndexed;
               if (r.PixelFormat == BitmapPixelFormat.Gray8) return PixelFormat.Format8bppIndexed;
               if (r.PixelFormat == BitmapPixelFormat.Bgr24) return PixelFormat.Format24bppRgb;
 

@@ -9,17 +9,20 @@ namespace ImageResizer.Imaging
 {
     public static class ExtensionMethods
     {
+        public static void Unreference(this ITrackable t)
+        {
+            t.TrackingScope.Unreference(t);
+        }
         public static void ApplyToRegion(this IBitmapFrame frame, int x, int y, int w, int h, Action<IBitmapRegion> action)
         {
-            var region = frame.LockRegion(x, y, w, h);
+            var region = frame.OpenRegion(x, y, w, h, RegionAccessMode.ReadWrite);
             try
             {
                 action(region);
             }
             finally
             {
-                frame.UnlockRegion(region);
-                if (!region.Disposed) region.Dispose();
+                region.Unreference();
             }
         }
         public static void ApplyToFrame(this IBitmapFrame frame,Action<IBitmapRegion> action)
@@ -29,7 +32,7 @@ namespace ImageResizer.Imaging
 
         public static IBitmapRegion LockFrame(this IBitmapFrame frame)
         {
-            return frame.LockRegion(0, 0, frame.Width, frame.Height);
+            return frame.OpenRegion(0, 0, frame.Width, frame.Height, RegionAccessMode.ReadWrite);
         }
 
         public static ManagedOperators Managed(this IBitmapRegion r)
@@ -42,10 +45,6 @@ namespace ImageResizer.Imaging
             return new SysDrawingOperators(r);
         }
 
-        public static byte[] ToBgra(this Color c)
-        {
-            return new byte[] { c.B, c.G, c.R, c.A };
 
-        }
     }
 }

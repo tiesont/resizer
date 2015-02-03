@@ -24,7 +24,7 @@ namespace ImageResizer.Imaging
             for (int j = y; j < y + h; j++)
                 for (int i = x; i < x + w; i++)
                 {
-                    var pixel = r.Pixel0 + (j * r.Stride) + (x * r.BytesPerPixel);
+                    var pixel = r.Byte0 + (j * r.Stride) + (x * r.BytesPerPixel);
                     Marshal.Copy(color, 0, pixel, color.Length);
                 }
         }
@@ -36,7 +36,7 @@ namespace ImageResizer.Imaging
             for (int j = y; j < y + h; j++)
                 for (int i = x; i < x + w; i++)
                 {
-                    var pixel = r.Pixel0 + (j * r.Stride) + (x * r.BytesPerPixel);
+                    var pixel = r.Byte0 + (j * r.Stride) + (x * r.BytesPerPixel);
                     Marshal.Copy(pixel, compare,0, color.Length);
                     if (!compare.SequenceEqual(color))
                     {

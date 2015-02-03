@@ -78,11 +78,35 @@
     <Compile Include="Collections\QuerystringBase.cs" />
     <Compile Include="Collections\ReadOnlyDictionary.cs" />
     <Compile Include="ExtensionMethods\Dictionary.cs" />
+    <Compile Include="Imaging\CommonPixelFormatList.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommonPixelFormatList.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Imaging\CommonPixelFormats.cs" />
+    <Compile Include="Imaging\CommonPixelGuids.cs" />
     <Compile Include="Imaging\ExtensionMethods.cs" />
+    <Compile Include="Imaging\FrameDimension.cs" />
+    <Compile Include="Imaging\IBitmapContainer.cs" />
+    <Compile Include="Imaging\IColorContext.cs" />
+    <Compile Include="Imaging\IIndexedBitmapFrame.cs" />
+    <Compile Include="Imaging\IPixelFormat.cs" />
+    <Compile Include="Imaging\ITrackable.cs" />
+    <Compile Include="Imaging\ITrackingScope.cs" />
+    <Compile Include="Imaging\IBitmapRegion.cs" />
+    <Compile Include="Imaging\IGraphicsHints.cs" />
+    <Compile Include="Imaging\Managed\ManagedGraphicsHints.cs" />
     <Compile Include="Imaging\Point.cs" />
     <Compile Include="Imaging\Rect.cs" />
+    <Compile Include="Imaging\RegionAccessMode.cs" />
     <Compile Include="Imaging\Size.cs" />
-    <Compile Include="Imaging\SysDrawingFrame.cs" />
+    <Compile Include="Imaging\StandardPixelFormat.cs" />
+    <Compile Include="Imaging\SysDrawing\ExtensionMethods.cs" />
+    <Compile Include="Imaging\SysDrawing\SysDrawingBitmap.cs" />
+    <Compile Include="Imaging\SysDrawing\SysDrawingFrame.cs" />
+    <Compile Include="Imaging\SysDrawing\SysDrawingIndexedFrame.cs" />
+    <Compile Include="Imaging\Trackable.cs" />
+    <Compile Include="Imaging\TrackingScope.cs" />
     <Compile Include="PluginLoadingHints.cs" />
     <Compile Include="Plugins\Basic\MvcRoutingShimPlugin.cs" />
     <Compile Include="Plugins\Basic\NoCacheAsyncHandler.cs" />
@@ -90,7 +114,6 @@
     <Compile Include="Plugins\IAsyncResponsePlan.cs" />
     <Compile Include="Plugins\IAsyncTyrantCache.cs" />
     <Compile Include="Imaging\IBitmapFrame.cs" />
-    <Compile Include="Imaging\IBitmapRegion.cs" />
     <Compile Include="Plugins\IProfiler.cs" />
     <Compile Include="Plugins\IVirtualFileAsync.cs" />
     <Compile Include="Plugins\IVirtualFileCacheAsync.cs" />
@@ -179,7 +202,7 @@
     <Compile Include="Plugins\IVirtualImageProvider.cs" />
     <Compile Include="Imaging\AbstractBitmapRegion.cs" />
     <Compile Include="Resizing\AbstractImageProcessor.cs" />
-    <Compile Include="Imaging\BgraBitmap.cs" />
+    <Compile Include="Imaging\C\BgraBitmap.cs" />
     <Compile Include="Resizing\BoxPadding.cs" />
     <Compile Include="Enumerations.cs" />
     <Compile Include="ImageBuilder.cs" />
@@ -193,9 +216,9 @@
     <Compile Include="Plugins\Basic\SizeLimits.cs" />
     <Compile Include="Resizing\BitmapTag.cs" />
     <Content Include="Resizing\UnitR.cs.txt" />
-    <Compile Include="Imaging\ManagedOperators.cs" />
-    <Compile Include="Imaging\SysDrawingOperators.cs" />
-    <Compile Include="Imaging\SysDrawingRegion.cs" />
+    <Compile Include="Imaging\Managed\ManagedOperators.cs" />
+    <Compile Include="Imaging\SysDrawing\SysDrawingOperators.cs" />
+    <Compile Include="Imaging\SysDrawing\SysDrawingRegion.cs" />
     <Compile Include="SharedAssemblyInfo.cs" />
     <Compile Include="Util\AssemblyAttributes.cs" />
     <Compile Include="Util\AsyncUtils.cs" />
@@ -243,6 +266,15 @@
     <Content Include="license.txt" />
     <Content Include="plugin-notes.txt" />
     <Content Include="totest.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Imaging\CommonPixelFormatList.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>CommonPixelFormatList.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

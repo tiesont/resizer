@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ImageResizer.Imaging
+namespace ImageResizer.Imaging.C
 {
     internal struct BgraBitmap{
         /// <summary>
