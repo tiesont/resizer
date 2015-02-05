@@ -7,9 +7,10 @@ using ImageResizer.Util;
 using System.Collections.Specialized;
 using ImageResizer.ExtensionMethods;
 using ImageResizer.Plugins.DiskCache;
+using System.Threading.Tasks;
 
 namespace ImageResizer.Plugins.SourceMemCache {
-    public class SourceMemCachePlugin: IPlugin, IVirtualFileCache {
+    public class SourceMemCachePlugin: IPlugin, IVirtualFileCache , IVirtualFileCacheAsync{
 
         /// <summary>
         /// Defaults to 10MB limit, and samples usage over the last 10 minutes when deciding what to remove. Stuff not used in the last 10 minutes gets discarded even if the limit hasn't been reached.
@@ -25,9 +26,16 @@ namespace ImageResizer.Plugins.SourceMemCache {
         }
 
         private LockProvider locks = new LockProvider();
+        private AsyncLockProvider asyncLocks = new AsyncLockProvider();
 
         private ConstrainedCache<string, CachedVirtualFile> cache;
-
+        /// <summary>
+        /// Retrieves file if cached.
+        /// </summary>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
+        /// <param name="original"></param>
+        /// <returns></returns>
         public IVirtualFile GetFileIfCached(string virtualPath, System.Collections.Specialized.NameValueCollection queryString, IVirtualFile original) {
             //Use alternate cache key if provided
             string key = original is IVirtualFileSourceCacheKey ? ((IVirtualFileSourceCacheKey)original).GetCacheKey(true) : original.VirtualPath;
@@ -50,6 +58,33 @@ namespace ImageResizer.Plugins.SourceMemCache {
             return null;
         }
 
+
+        public async Task<IVirtualFileAsync> GetFileIfCachedAsync(string virtualPath, NameValueCollection queryString, IVirtualFileAsync original)
+        {
+            //Use alternate cache key if provided
+            string key = original is IVirtualFileSourceCacheKey ? ((IVirtualFileSourceCacheKey)original).GetCacheKey(true) : original.VirtualPath;
+            //If cached, serve it. 
+            CachedVirtualFile c = cache.Get(key);
+            if (c != null) return c;
+            //If not, let's cache it.
+            if ("mem".Equals(queryString["scache"], StringComparison.OrdinalIgnoreCase))
+            {
+                await asyncLocks.TryExecuteAsync(key, 3000, async delegate()
+                {
+                    c = cache.Get(key);
+                    if (c == null)
+                    {
+                        using (Stream data = await original.OpenAsync())
+                        {//Very long-running call
+                            c = new CachedVirtualFile(original.VirtualPath, await data.CopyToBytesAsync(true, 0x1000));
+                        }
+                        cache.Set(key, c);//Save to cache (may trigger cleanup)
+                    }
+                });
+                return c;
+            }
+            return null;
+        }
         public IPlugin Install(Configuration.Config c) {
             c.Plugins.add_plugin(this);
             return this;
@@ -61,9 +96,12 @@ namespace ImageResizer.Plugins.SourceMemCache {
         }
 
 
-    }
 
-    public class CachedVirtualFile : IVirtualFile {
+    }
+    /// <summary>
+    /// Source file cached in memory.
+    /// </summary>
+    public class CachedVirtualFile : IVirtualFile , IVirtualFileAsync{
 
         public CachedVirtualFile(string virtualPath, byte[] data) {
             this.virtualPath = virtualPath;
@@ -84,6 +122,13 @@ namespace ImageResizer.Plugins.SourceMemCache {
             }
 
             return new MemoryStream(data, false);
+        }
+
+
+
+        public Task<Stream> OpenAsync()
+        {
+            return Task.FromResult(Open());
         }
 
         protected int originalHash = -1;

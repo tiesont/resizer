@@ -23,11 +23,11 @@ $plugins$
 </description>
 		<tags>ImageResizer PdfRenderer PDF Imazen Resizer  imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		</dependencies>
 	</metadata>
   	<files>
- 		<file src="$coredlldir$\ImageResizer.Plugins.PdfRenderer.dll" target="lib" />
-		<file src="$coredlldir$\ImageResizer.Plugins.PdfRenderer.xml" target="lib" />
+ 		<file src="$coredlldir$\ImageResizer.Plugins.PdfRenderer.dll" target="lib\net45" />
+		<file src="$coredlldir$\ImageResizer.Plugins.PdfRenderer.xml" target="lib\net45" />
 	</files>
 </package>

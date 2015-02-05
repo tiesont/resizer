@@ -1,23 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
 using ImageResizer.Util;
 using System.Globalization;
 using ImageResizer.ExtensionMethods;
+using ImageResizer.Plugins;
 
 namespace ImageResizer {
 
     public class ImageJob {
+
+        private class NullProfiler : IProfiler
+        {
+
+            public bool Active
+            {
+                get { return false; }
+            }
+
+            public void Start(string segmentName, bool assertStopped = true)
+            {
+            }
+
+            public bool IsRunning(string segmentName)
+            {
+                return false;
+            }
+
+            public void Stop(string segmentName, bool assertRunning = true, bool stopChildren = false)
+            {
+              
+            }
+        }
         public ImageJob() {
             this.RequestedInfo = new List<string>();
             this.ResultInfo = new Dictionary<string, object>();
+            this.Profiler = new NullProfiler();
         }
 
-        public ImageJob(object source, object dest, Instructions instructions)
+        public ImageJob(object source, object dest, Instructions instructions):this()
         {
-            this.RequestedInfo = new List<string>();
-            this.ResultInfo = new Dictionary<string, object>();
             this.Source = source;
             this.Dest = dest;
             this.Instructions = instructions;
@@ -41,12 +63,11 @@ namespace ImageResizer {
         /// </summary>
         /// <param name="source"></param>
         /// <param name="requestedImageInfo">Pass null to use "source.width","source.height", "result.ext","result.mime". </param>
-        public ImageJob(object source, IEnumerable<string> requestedImageInfo)
+        public ImageJob(object source, IEnumerable<string> requestedImageInfo):this()
         {
             this.Source = source;
             this.Dest = typeof(IDictionary<string, object>);
             this.RequestedInfo = new List<string>(requestedImageInfo == null ? new string[]{"source.width","source.height", "result.ext","result.mime"} : requestedImageInfo);
-            this.ResultInfo = new Dictionary<string, object>();
             this.Instructions = new Instructions();
         }
 
@@ -150,6 +171,11 @@ namespace ImageResizer {
             get { return new ResizeSettings(Instructions); }
             set { Instructions = new Instructions(value); }
         }
+
+        /// <summary>
+        /// The profiler to report start/stop events to.
+        /// </summary>
+        public IProfiler Profiler{get;set;}
 
         /// <summary>
         /// The image processing instructions

@@ -8,14 +8,29 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using ImageResizer.ExtensionMethods;
+using System.Collections.Specialized;
 
 namespace ImageResizer.Plugins.SeamCarving {
+    /// <summary>
+    /// This plugin provides content-aware image resizing and 5 different algorithms.
+    /// </summary>
     public class SeamCarvingPlugin : BuilderExtension, IQuerystringPlugin, IPlugin {
 
         CairManager cair = new CairManager();
+        /// <summary>
+        /// Creates a new instance of SeamCarvingPlugin
+        /// </summary>
         public SeamCarvingPlugin() {
-
+            Timeout = 5000;
         }
+
+        public SeamCarvingPlugin(NameValueCollection args):this()
+        {
+            Timeout = args.Get<int>("timeout", Timeout);
+        }
+
+        public int Timeout { get; set; }
+
         public enum FilterType {
             None = 10,
             Prewitt = 0,
@@ -172,7 +187,7 @@ namespace ImageResizer.Plugins.SeamCarving {
                         job.DestPath = outputTempFile;
                         job.Size = intTargetSize;
                         job.Filter = ftype;
-                        job.Timeout = 5000;
+                        job.Timeout = Timeout;
                         cair.CairyIt(job);
                     } finally {
                         if (maskFile != null) File.Delete(maskFile);
@@ -188,7 +203,7 @@ namespace ImageResizer.Plugins.SeamCarving {
                 //Load the new intermediate file from disk
                 s.preRenderBitmap = new Bitmap(outputTempFile);
                 s.preRenderBitmap.MakeTransparent();
-				
+                
                 //Reset the s.copyRect to match the new bitmap
                 s.copyRect = new RectangleF(new PointF(0,0), new SizeF(targetSize.Width, targetSize.Height));
 
@@ -200,18 +215,30 @@ namespace ImageResizer.Plugins.SeamCarving {
         }
 
 
-
+        /// <summary>
+        /// Returns the querystrings command keys supported by this plugin. 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedQuerystringKeys() {
             return new string[] { "carve" };
         }
 
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Configuration.Config c) {
             c.Plugins.add_plugin(this);
             return this;
         }
 
 
-
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Configuration.Config c) {
             c.Plugins.remove_plugin(this);
             return true;

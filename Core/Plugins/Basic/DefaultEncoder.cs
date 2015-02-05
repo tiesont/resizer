@@ -126,7 +126,7 @@ namespace ImageResizer.Plugins.Basic {
         /// If an unsupported format is specified, it is returned.
         /// If *no* format is specified, returns defaultValue.
         /// </summary>
-		/// <param name="format"></param>
+        /// <param name="format"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         public static ImageFormat GetRequestedFormat(string format, ImageFormat defaultValue) {
@@ -179,7 +179,7 @@ namespace ImageResizer.Plugins.Basic {
         /// Returns an string instance from the specfied ImageFormat. First matching entry in imageExtensions is used.
         /// Returns null if not recognized.
         /// </summary>
-		/// <param name="format"></param>
+        /// <param name="format"></param>
         /// <returns></returns>
         public static string GetExtensionFromImageFormat(ImageFormat format)
         {
@@ -269,7 +269,7 @@ namespace ImageResizer.Plugins.Basic {
             else if (ImageFormat.Gif.Equals(format))
                 return "image/gif";
             else if (ImageFormat.Bmp.Equals(format))
-                return "image/x-ms-bmp";
+                return "image/bmp";
             else if (ImageFormat.Tiff.Equals(format))
                 return "image/tiff";
             else

@@ -16,12 +16,20 @@ namespace ImageResizer.Plugins.AdvancedFilters {
     public class AdvancedFilters:BuilderExtension, IPlugin, IQuerystringPlugin {
         public AdvancedFilters() {
         }
-
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Configuration.Config c) {
             c.Plugins.add_plugin(this);
             return this;
         }
-
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Configuration.Config c) {
             c.Plugins.remove_plugin(this);
             return true;
@@ -33,6 +41,7 @@ namespace ImageResizer.Plugins.AdvancedFilters {
         /// <param name="s"></param>
         /// <param name="key"></param>
         /// <param name="key2"></param>
+        /// <param name="units"></param>
         /// <returns></returns>
         protected int GetRadius(ImageState s, string key, string key2, double units) {
             string str = s.settings[key];
@@ -70,7 +79,6 @@ namespace ImageResizer.Plugins.AdvancedFilters {
         }
 
         protected void ApplyPreFiltersTo(ref Bitmap b, ImageState s) {
-            string str = null;
             int i = 0;
 
             double units = s.settings.Get<double>("a.radiusunits", 1000);
@@ -83,6 +91,10 @@ namespace ImageResizer.Plugins.AdvancedFilters {
         }
         protected void ApplyFiltersTo(ref Bitmap b, ImageState s){
 
+            var imageRectF = s.layout.GetRingAsRectF("image");
+            var areaOfEffect = imageRectF == null ? new Rectangle(0,0,b.Width,b.Height) : PolygonMath.ToRectangle(imageRectF.Value);
+
+
             //TODO: if the image is unrotated, use a rectangle to limit the effect to the desired area
 
             string str = null;
@@ -92,19 +104,19 @@ namespace ImageResizer.Plugins.AdvancedFilters {
             double units = s.settings.Get<double>("a.radiusunits",1000);
            
             i = GetRadius(s, "blur", "a.blur", units);
-            if (i > 0) new GaussianBlur(1.4, i).ApplyInPlace(b);
+            if (i > 0) new GaussianBlur(1.4, i).ApplyInPlace(b, areaOfEffect);
 
             i = GetRadius(s, "sharpen", "a.sharpen", units);
-            if (i > 0) new GaussianSharpen(1.4, Math.Min(11,i)).ApplyInPlace(b);
+            if (i > 0) new GaussianSharpen(1.4, Math.Min(11, i)).ApplyInPlace(b, areaOfEffect);
 
             i = GetRadius(s, "a.oilpainting", null, units);
-            if (i > 0) new OilPainting(i).ApplyInPlace(b);
+            if (i > 0) new OilPainting(i).ApplyInPlace(b, areaOfEffect);
 
             if ("true".Equals(s.settings["a.removenoise"], StringComparison.OrdinalIgnoreCase)) {
-                new ConservativeSmoothing(3).ApplyInPlace(b);
+                new ConservativeSmoothing(3).ApplyInPlace(b, areaOfEffect);
             } else {
                 i = GetRadius(s, "a.removenoise", null, units);
-                if (i > 0) new ConservativeSmoothing(i).ApplyInPlace(b);
+                if (i > 0) new ConservativeSmoothing(i).ApplyInPlace(b, areaOfEffect);
             }
 
 
@@ -118,12 +130,12 @@ namespace ImageResizer.Plugins.AdvancedFilters {
                 }finally{
                     if (old != s.sourceBitmap) old.Dispose();
                 }
-                
-                new SobelEdgeDetector().ApplyInPlace(b);
+
+                new SobelEdgeDetector().ApplyInPlace(b, areaOfEffect);
 
                 str = s.settings["a.threshold"]; //radius
                 if (!string.IsNullOrEmpty(str) && int.TryParse(str, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out i) && i > 0)
-                 new Threshold(i).ApplyInPlace(b);
+                    new Threshold(i).ApplyInPlace(b, areaOfEffect);
     
             }
             //Canny Edge Detector only supports 8bpp grayscale images.
@@ -135,20 +147,20 @@ namespace ImageResizer.Plugins.AdvancedFilters {
                 } finally {
                     if (old != s.sourceBitmap) old.Dispose();
                 }
-                new CannyEdgeDetector().ApplyInPlace(b);
+                new CannyEdgeDetector().ApplyInPlace(b, areaOfEffect);
 
 
             }
 
             //true/false - duplicate with SimpleFilters?
             if ("true".Equals(s.settings["a.sepia"], StringComparison.OrdinalIgnoreCase))
-                new Sepia().ApplyInPlace(b);
+                new Sepia().ApplyInPlace(b,areaOfEffect);
             
             //true/false
             if ("true".Equals(s.settings["a.equalize"], StringComparison.OrdinalIgnoreCase))
-                new HistogramEqualization().ApplyInPlace(b);
+                new HistogramEqualization().ApplyInPlace(b, areaOfEffect);
 
-            ///White balance adjustment
+            //White balance adjustment
             var whiteAlg = s.settings.Get<HistogramThresholdAlgorithm>("a.balancewhite");
             var whiteVal = s.settings.Get<double>("a.balancethreshold");
 
@@ -156,7 +168,7 @@ namespace ImageResizer.Plugins.AdvancedFilters {
             if (whiteAlg != null || whiteVal != null) {
                 var bal = new AutoWhiteBalance(whiteAlg ?? HistogramThresholdAlgorithm.Area);
                 if (whiteVal != null) bal.LowThreshold = bal.HighThreshold = whiteVal.Value / 100;
-                bal.ApplyInPlace(b);
+                bal.ApplyInPlace(b, areaOfEffect);
             }
 
             str = s.settings["a.posterize"]; //number of colors to merge
@@ -165,7 +177,7 @@ namespace ImageResizer.Plugins.AdvancedFilters {
                 if (i < 1) i = 1; 
                 if (i > 255) i = 255;
                 sp.PosterizationInterval =(byte)i;
-                sp.ApplyInPlace(b); 
+                sp.ApplyInPlace(b, areaOfEffect); 
             }
 
             //Pixellate doesn't support 32-bit images, only 24-bit
@@ -184,7 +196,7 @@ namespace ImageResizer.Plugins.AdvancedFilters {
             if (contrast != 0 || brightness != 0 || saturation != 0){
                 HSLLinear adjust = new HSLLinear();
                 AdjustContrastBrightnessSaturation(adjust, contrast, brightness, saturation, "true".Equals(s.settings["a.truncate"]));
-                adjust.ApplyInPlace(b);
+                adjust.ApplyInPlace(b, areaOfEffect);
             }
             //TODO - add grayscale?
 
@@ -234,6 +246,10 @@ namespace ImageResizer.Plugins.AdvancedFilters {
             }
         }
 
+        /// <summary>
+        /// Returns the querystrings command keys supported by this plugin. 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedQuerystringKeys() {
             return new string[] { "blur", "sharpen" , "a.blur", "a.sharpen", "a.oilpainting", "a.removenoise", 
                                 "a.sobel", "a.threshold", "a.canny", "a.sepia", "a.equalize", "a.posterize", 

@@ -34,12 +34,12 @@ $plugins$
 </description>
 		<tags>ImageResizer SimpleFilters sepia grayscale alpha brightness contrast saturation Imazen Resizer imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		</dependencies>
 	</metadata>
   	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.SimpleFilters.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.SimpleFilters.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.SimpleFilters.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.SimpleFilters.xml" target="lib\net45" />
 		<file src="..\Plugins\SimpleFilters\Web.config.transform" target="content" />
 	</files>
 </package>

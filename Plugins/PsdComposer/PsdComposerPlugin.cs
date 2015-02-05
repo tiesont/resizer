@@ -20,18 +20,33 @@ using ImageResizer.Configuration;
 using System.Globalization;
 namespace ImageResizer.Plugins.PsdComposer
 {
+    /// <summary>
+    /// Allows you to edit PSD files (hide/show layers, change text layer contents, apply certain effects), and render them to jpeg, gif, or png dynamically. Works as an IVirtualImageProvider, so you can post-process the composed result with any of the other plugins or commands.
+    /// </summary>
     public class PsdComposerPlugin : IPlugin, IVirtualImageProvider, IQuerystringPlugin, IFileExtensionPlugin
     {
-
+        /// <summary>
+        /// Creates a new instance of PsdComposer
+        /// </summary>
         public PsdComposerPlugin(): base()  { }
 
         internal Config c;
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Config c) {
             this.c = c;
             this.c.Plugins.add_plugin(this);
             return this;
         }
 
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Config c) {
             c.Plugins.remove_plugin(this);
             return true;
@@ -61,11 +76,17 @@ namespace ImageResizer.Plugins.PsdComposer
                 return null;
         }
 
-
+        /// <summary>
+        /// Returns the querystrings command keys supported by this plugin. 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedQuerystringKeys() {
             return PsdCommandBuilder.GetSupportedQuerystringKeys();
         }
-
+        /// <summary>
+        /// Additional file types this plugin adds support for decoding.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedFileExtensions() {
             return new string[] { "psd" };
         }
@@ -89,7 +110,8 @@ namespace ImageResizer.Plugins.PsdComposer
         /// <summary>
         /// Returns a stream to the composed file, encoded in the format requested by the querystring or fake extension
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
         /// <returns></returns>
         public Stream ComposeStream(string virtualPath, NameValueCollection queryString) {
 
@@ -118,7 +140,8 @@ namespace ImageResizer.Plugins.PsdComposer
         /// <summary>
         /// Returns a Bitmap instance of the composed result
         /// </summary>
-        /// <param name="id"></param>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
         /// <returns></returns>
         public System.Drawing.Bitmap ComposeBitmap(string virtualPath, NameValueCollection queryString) {
             //Renderer object

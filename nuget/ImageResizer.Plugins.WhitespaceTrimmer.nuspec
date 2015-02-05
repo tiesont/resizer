@@ -26,13 +26,13 @@ $plugins$
 </description>
 		<tags>ImageResizer whitespacetrimmer trim whitespace product images Imazen resizer imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		  <dependency id="AForge.Imaging"/>
 		</dependencies>
 	</metadata>
   	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.WhitespaceTrimmer.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.WhitespaceTrimmer.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.WhitespaceTrimmer.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.WhitespaceTrimmer.xml" target="lib\net45" />
 		<file src="..\Plugins\WhitespaceTrimmer\Web.config.transform" target="content" />
 	</files>
 </package>

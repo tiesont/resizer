@@ -138,6 +138,21 @@ namespace ImageResizer.Resizing {
             }
             return PolygonMath.GetBoundingBox(points.ToArray());
         }
+
+        /// <summary>
+        /// Returns a rectangle representing the given ring - if it is an axis-parallel rectangle. Otherwise returns null;
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public RectangleF? GetRingAsRectF(string name)
+        {
+            var poly = this[name];
+            var rect = PolygonMath.GetBoundingBox(poly);
+            var poly2 = PolygonMath.ToPoly(rect);
+            return PolygonMath.ArraysEqual(poly, poly2) ? (RectangleF?)rect : null;
+        }
+
+
         /// <summary>
         /// Rotates all existing rings (Except those flagged ignore)
         /// </summary>
@@ -183,8 +198,8 @@ namespace ImageResizer.Resizing {
         /// <summary>
         /// Translates and scales all rings and invisible polygons as specified. 
         /// </summary>
-		/// <param name="from"></param>
-		/// <param name="to"></param>
+        /// <param name="from"></param>
+        /// <param name="to"></param>
         public void Shift(RectangleF from, RectangleF to) {
 
             PointF fromOrigin = new PointF(from.X + (from.Width /2), from.Y + (from.Height /2));

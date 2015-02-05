@@ -7,6 +7,7 @@ using ImageResizer.Configuration;
 using System.Collections.Specialized;
 using System.Web;
 using ImageResizer.Plugins;
+using System.Threading.Tasks;
 
 namespace ImageResizer.Configuration {
     public enum VppUsageOption {
@@ -73,6 +74,10 @@ namespace ImageResizer.Configuration {
         /// True once the InterceptModule has been installed. 
         /// </summary>
         bool ModuleInstalled { get; set; }
+        /// <summary>
+        /// True if we know that InterceptModuleAsync is registered. Null if we don't know.
+        /// </summary>
+        bool? UsingAsyncMode { get; set; }
 
         /// <summary>
         /// Returns the value of Context.Items["resizer.newPath"] if present. If not, returns FilePath + PathInfo.
@@ -101,13 +106,23 @@ namespace ImageResizer.Configuration {
         /// <returns></returns>
         ICacheProvider GetCacheProvider();
 
-		/// <summary>
+        IAsyncTyrantCache GetAsyncCacheFor(HttpContext context, IAsyncResponsePlan plan);
+
+        /// <summary>
         /// Returns an IVirtualFile instance if the specified file exists.
-		/// </summary>
-		/// <param name="virtualPath"></param>
-		/// <param name="queryString"></param>
-		/// <returns></returns>
+        /// </summary>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
+        /// <returns></returns>
         new IVirtualFile GetFile(string virtualPath, NameValueCollection queryString);
+
+        /// <summary>
+        /// Returns an IVirtualFileAsync instance if the specified file can be provided by an async provider 
+        /// </summary>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
+        /// <returns></returns>
+        Task<IVirtualFileAsync> GetFileAsync(string virtualPath, NameValueCollection queryString);
 
         /// <summary>
         /// Returns true if (a) A registered IVirtualImageProvider says it exists, or (b) if the VirtualPathProvider chain says it exists.
@@ -116,6 +131,14 @@ namespace ImageResizer.Configuration {
         /// <param name="queryString"></param>
         /// <returns></returns>
         new bool FileExists(string virtualPath, NameValueCollection queryString);
+
+        /// <summary>
+        /// Returns true if any registered IVirtualImageProviderAsync says it exists.
+        /// </summary>
+        /// <param name="virtualPath"></param>
+        /// <param name="queryString"></param>
+        /// <returns></returns>
+        Task<bool> FileExistsAsync(string virtualPath, NameValueCollection queryString);
 
 
         /// <summary>
@@ -139,5 +162,7 @@ namespace ImageResizer.Configuration {
         NameValueCollection ModifiedQueryString { get; set; }
 
         bool IsAppDomainUnrestricted();
+
+        string DropQuerystringKeys { get; set; }
     }
 }

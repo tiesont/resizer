@@ -151,7 +151,10 @@ namespace ImageResizer.Util {
         /// <returns></returns>
         public static string ResolveAppRelative(string virtualPath) {
             //resolve tilde
-            if (virtualPath.StartsWith("~", StringComparison.OrdinalIgnoreCase)) return HostingEnvironment.ApplicationVirtualPath.TrimEnd('/') + '/' + virtualPath.TrimStart('~', '/');
+            if (virtualPath.StartsWith("~", StringComparison.OrdinalIgnoreCase))
+                return HostingEnvironment.ApplicationVirtualPath != null
+                    ? HostingEnvironment.ApplicationVirtualPath.TrimEnd('/') + '/' + virtualPath.TrimStart('~', '/')
+                    : '/' + virtualPath.TrimStart('~', '/');
             return virtualPath;
         }
 
@@ -162,13 +165,13 @@ namespace ImageResizer.Util {
         /// <param name="virtualPath"></param>
         /// <returns></returns>
         public static string ResolveAppRelativeAssumeAppRelative(string virtualPath) {
-
-            if (virtualPath.StartsWith("~")) return HostingEnvironment.ApplicationVirtualPath.TrimEnd('/') + "/" + virtualPath.TrimStart('~', '/');
-            if (!virtualPath.StartsWith("/")) return HostingEnvironment.ApplicationVirtualPath.TrimEnd('/') + "/" + virtualPath;
+            string applicationVirtualPath = HostingEnvironment.ApplicationVirtualPath ?? string.Empty;
+            if (virtualPath.StartsWith("~"))
+                return applicationVirtualPath.TrimEnd('/') + "/" + virtualPath.TrimStart('~', '/');
+            if (!virtualPath.StartsWith("/"))
+                return applicationVirtualPath.TrimEnd('/') + "/" + virtualPath;
             return virtualPath;
         }
-
-
 
         /// <summary>
         /// Joins the path and querystring. If the path already contains a querystring, they are 'append joined' with the correct character. Fragment is maintained as-is. 
@@ -256,7 +259,7 @@ namespace ImageResizer.Util {
         /// Keys and values are UrlEncoded if urlEncode=true.
         /// </summary>
         /// <param name="QueryString"></param>
-		/// <param name="urlEncode"></param>
+        /// <param name="urlEncode"></param>
         /// <returns></returns>
         public static string BuildQueryString(NameValueCollection QueryString, bool urlEncode) {
             return BuildQueryString(QueryString, urlEncode, true, '?', '&', '=');
@@ -350,7 +353,7 @@ namespace ImageResizer.Util {
         /// <summary>
         /// Parses the querystring from the given path into a NameValueCollection. 
         /// accepts "file?key=value" and "?key=value&amp;key2=value2" formats. (no path is required)
-        /// UrlDecodes keys and values. Does not enforce correct syntax, I.E. '?key=value?key2=value2' is allowed. However, '&key=value?key2=value' will only get key2 parsed. 
+        /// UrlDecodes keys and values. Does not enforce correct syntax, I.E. '?key=value?key2=value2' is allowed. However, '&amp;key=value?key2=value' will only get key2 parsed. 
         /// When allowSemicolons is true, semicolon paths like ';key=value;key2=value2' are allowed, as are hybrid paths: ';key=value?key2=value2&amp;key3=value3'.
         /// </summary>
         /// <param name="path"></param>
@@ -364,7 +367,7 @@ namespace ImageResizer.Util {
         /// <summary>
         /// Parses the querystring from the given path into a NameValueCollection. 
         /// accepts "file?key=value" and "?key=value&amp;key2=value2" formats. (no path is required)
-        /// UrlDecodes keys and values. Does not enforce correct syntax, I.E. '?key=value?key2=value2' is allowed. However, '&key=value?key2=value' will only get key2 parsed. 
+        /// UrlDecodes keys and values. Does not enforce correct syntax, I.E. '?key=value?key2=value2' is allowed. However, '&amp;key=value?key2=value' will only get key2 parsed. 
         /// When allowSemicolons is true, semicolon paths like ';key=value;key2=value2' are allowed, as are hybrid paths: ';key=value?key2=value2&amp;key3=value3'.
         /// 
         /// Does NOT parse fragments correctly.
@@ -372,6 +375,7 @@ namespace ImageResizer.Util {
         /// <param name="path"></param>
         /// <param name="allowSemicolons"></param>
         /// <param name="beforeQuery">Returns the portion of the 'path' before the querystring. May include the scheme, server, port, path and path info, depending upon what 'path' contained.</param>
+        /// <param name="fragment"></param>
         /// <returns></returns>
         public static NameValueCollection ParseQueryString(string path, bool allowSemicolons, out string beforeQuery, out string fragment) {
             //Separate the fragment if it's present, and restore it later

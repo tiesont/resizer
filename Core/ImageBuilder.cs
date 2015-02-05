@@ -410,6 +410,7 @@ namespace ImageResizer
             try {
                 //Allow everything else to be overriden
                 if (BuildJob(job) != RequestedAction.Cancel) throw new ImageProcessingException("Nobody did the job");
+                EndBuildJob(job);
                 return job;
             } finally {
                 //Follow the dispose requests
@@ -522,9 +523,9 @@ namespace ImageResizer
         /// Override this when you need to override the behavior of image encoding and/or Bitmap processing
         /// Not for external use. Does NOT dispose of 'source' or 'source's underlying stream.
         /// </summary>
+        /// <param name="job"></param>
         /// <param name="source"></param>
         /// <param name="dest"></param>
-        /// <param name="settings"></param>
         protected override RequestedAction BuildJobBitmapToStream(ImageJob job, Bitmap source, Stream dest) {
             if (base.BuildJobBitmapToStream(job,source, dest) == RequestedAction.Cancel) return RequestedAction.None;
 
@@ -533,6 +534,7 @@ namespace ImageResizer
             using (Bitmap b = BuildJobBitmapToBitmap(job, source, e.SupportsTransparency))
             {//Determines output format, includes code for saving in a variety of formats.
                 //Save to stream
+                BeforeEncode(job);
                 e.Write(b, dest);
             }
             return RequestedAction.None;
@@ -543,7 +545,7 @@ namespace ImageResizer
         /// Not for external use. Does NOT dispose of 'source' or 'source's underlying stream.
         /// </summary>
         /// <param name="source"></param>
-        /// <param name="settings"></param>
+        /// <param name="job"></param>
         /// <param name="transparencySupported">True if the output method will support transparency. If false, the image should be provided a matte color</param>
         /// <returns></returns>
         protected Bitmap BuildJobBitmapToBitmap(ImageJob job, Bitmap source, bool transparencySupported) {
@@ -840,7 +842,6 @@ namespace ImageResizer
 
         protected override RequestedAction CreateImageAttribues(ImageState s) {
             if (base.CreateImageAttribues(s) == RequestedAction.Cancel) return RequestedAction.Cancel; //Call extensions
-            if (s.copyAttibutes == null) s.copyAttibutes = new ImageAttributes();
             return RequestedAction.None;
         }
 
@@ -854,18 +855,30 @@ namespace ImageResizer
                 s.destGraphics.InterpolationMode = s.settings.Get<InterpolationMode>("gdi.filter", s.destGraphics.InterpolationMode);
             }
 
-            s.copyAttibutes.SetWrapMode(WrapMode.TileFlipXY);
             if (s.preRenderBitmap != null) {
                 using (Bitmap b = s.preRenderBitmap) { //Dispose the intermediate bitmap aggressively
-                    s.destGraphics.DrawImage(s.preRenderBitmap, PolygonMath.getParallelogram(s.layout["image"]), 
-                        s.copyRect, GraphicsUnit.Pixel, s.copyAttibutes);
+                    this.InternalGraphicsDrawImage(s, s.destBitmap, s.preRenderBitmap, PolygonMath.getParallelogram(s.layout["image"]), 
+                        s.copyRect, s.colorMatrix);
                 }
-            } else {
-                s.destGraphics.DrawImage(s.sourceBitmap, PolygonMath.getParallelogram(s.layout["image"]), s.copyRect, GraphicsUnit.Pixel, s.copyAttibutes);
+            } else { 
+                this.InternalGraphicsDrawImage(s,s.destBitmap,s.sourceBitmap, PolygonMath.getParallelogram(s.layout["image"]), s.copyRect,  s.colorMatrix);
             }
             return RequestedAction.None;
         }
 
+        protected override RequestedAction InternalGraphicsDrawImage(ImageState state, Bitmap dest, Bitmap source, PointF[] targetArea, RectangleF sourceArea, float[][] colorMatrix)
+        {
+            if (base.InternalGraphicsDrawImage(state, dest, source, targetArea, sourceArea, colorMatrix) == RequestedAction.Cancel) return RequestedAction.Cancel;
+            using (var ia = new ImageAttributes())
+            {
+                ia.SetWrapMode(WrapMode.TileFlipXY);
+            
+                if (colorMatrix != null) ia.SetColorMatrix(new ColorMatrix(colorMatrix));
+                state.destGraphics.DrawImage(source, targetArea, sourceArea, GraphicsUnit.Pixel, ia);
+            
+            }
+            return RequestedAction.Cancel;
+        }
         protected override RequestedAction RenderBorder(ImageState s) {
             if (base.RenderBorder(s) == RequestedAction.Cancel) return RequestedAction.Cancel; //Call extensions
 
@@ -1171,11 +1184,12 @@ namespace ImageResizer
 
         protected override RequestedAction EndProcess(ImageState s)
         {
+            if (base.EndProcess(s) == RequestedAction.Cancel) return RequestedAction.Cancel;
             if (s.Job != null)
             {
                 //Save the final dimensions.
-                s.Job.ResultInfo["result.width"] = s.finalSize.Width;
-                s.Job.ResultInfo["result.height"] = s.finalSize.Height;
+                s.Job.ResultInfo["final.width"] = s.finalSize.Width;
+                s.Job.ResultInfo["final.height"] = s.finalSize.Height;
             }
             return RequestedAction.None;
         }

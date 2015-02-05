@@ -19,7 +19,7 @@ namespace ImageResizer.Plugins.RemoteReader {
     public class RemoteReaderPlugin : BuilderExtension, IPlugin, IVirtualImageProvider, IIssueProvider, IRedactDiagnostics {
 
         public Configuration.Xml.Node RedactFrom(Node resizer) {
-            if (resizer.queryFirst("remoteReader") != null) resizer.setAttr("remoteReader.signingKey", "[redacted]");
+            if (resizer != null && resizer.queryFirst("remoteReader") != null) resizer.setAttr("remoteReader.signingKey", "[redacted]");
 
             return resizer;
         }
@@ -35,24 +35,26 @@ namespace ImageResizer.Plugins.RemoteReader {
             get { return RemoteReaderPlugin.hmacKey; }
         }
 
-        private int _allowedRedirects = 5;
         /// <summary>
         /// How many redirects to follow before throwing an exception. Defaults to 5.
         /// </summary>
-        public int AllowedRedirects {
-            get { return _allowedRedirects; }
-            set { _allowedRedirects = value; }
-        }
+        public int AllowedRedirects { get; set; }
 
         protected string remotePrefix = "~/remote";
         Config c;
         public RemoteReaderPlugin() {
+            AllowedRedirects = 5;
             try {
                 remotePrefix = Util.PathUtils.ResolveAppRelativeAssumeAppRelative(remotePrefix);
                 //Remote prefix must never end in a slash - remote.jpg syntax...
             } catch { }
         }
 
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Configuration.Config c) {
             this.c = c;
             c.Plugins.add_plugin(this);
@@ -68,7 +70,11 @@ namespace ImageResizer.Plugins.RemoteReader {
             if (IsRemotePath(c.Pipeline.PreRewritePath)) c.Pipeline.SkipFileTypeCheck = true;
         }
 
-
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Configuration.Config c) {
             c.Plugins.remove_plugin(this);
             c.Pipeline.RewriteDefaults -= Pipeline_RewriteDefaults;

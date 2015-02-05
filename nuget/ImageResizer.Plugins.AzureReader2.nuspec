@@ -24,12 +24,12 @@ $plugins$
 </description>
 		<tags>ImageResizer Imazen Resizer AzureReader Azure Blob Storage VirtualPathProvider cloud imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		  <dependency id="WindowsAzure.Storage" version="[2,]" />
 		</dependencies>
 	</metadata>
   	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.AzureReader2.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.AzureReader2.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.AzureReader2.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.AzureReader2.xml" target="lib\net45" />
 	</files>
 </package>

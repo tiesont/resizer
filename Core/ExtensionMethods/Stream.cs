@@ -4,6 +4,7 @@ using System.Text;
 using System.IO;
 using ImageResizer.Util;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace ImageResizer.ExtensionMethods {
     /// <summary>
@@ -18,6 +19,14 @@ namespace ImageResizer.ExtensionMethods {
         /// <returns></returns>
         public static MemoryStream CopyToMemoryStream(this Stream s) {
             return CopyToMemoryStream(s, false);
+        }
+
+        public static async Task<MemoryStream> CopyToMemoryStreamAsync(this Stream s, int bufferSize = 4096)
+        {
+            MemoryStream ms = new MemoryStream(s.CanSeek ? ((int)s.Length + 8 -  (int)s.Position) : bufferSize);
+            await s.CopyToAsync(ms, bufferSize);
+            ms.Position = 0;
+            return ms;
         }
         /// <summary>
         /// Copies the current stream into a new MemoryStream instance.
@@ -125,6 +134,35 @@ namespace ImageResizer.ExtensionMethods {
         }
 
         /// <summary>
+        /// Can return null if MemoryStream doesn't permit access to internal buffer. 
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="entireStream"></param>
+        /// <returns></returns>
+        private static byte[] CopyMemoryStreamToBytes(this MemoryStream src, bool entireStream)
+        {
+            byte[] bytes;
+            
+            //Slice from 
+            MemoryStream ms = src as MemoryStream;
+            try
+            {
+                byte[] buffer = ms.GetBuffer();
+                long pos = entireStream ? 0 : src.Position;
+                long count = src.Length - pos;
+                bytes = new byte[count];
+                Array.Copy(buffer, pos, bytes, 0, count);
+                return bytes;
+            }
+            catch (UnauthorizedAccessException) //If we can't slice it, then we read it like a normal stream
+            { }
+            if (entireStream || src.Position == 0) return ms.ToArray(); //Uses InternalBlockCopy, quite fast...
+            else
+            {
+                return null;
+            }
+        }
+        /// <summary>
         /// Copies the current stream into a byte[] array of exact size
         /// </summary>
         /// <param name="src"></param>
@@ -132,21 +170,9 @@ namespace ImageResizer.ExtensionMethods {
         /// <param name="chunkSize">The buffer size to use (in bytes) if a buffer is required. Default: 4KiB</param>
         /// <returns></returns>
         public static byte[] CopyToBytes(this Stream src, bool entireStream, int chunkSize) {
-            byte[] bytes;
-            if (src is MemoryStream) {
-                //Slice from 
-                MemoryStream ms = src as MemoryStream;
-                try {
-                    byte[] buffer = ms.GetBuffer();
-                    long pos = entireStream ? 0 : src.Position;
-                    long count = src.Length - pos;
-                    bytes = new byte[count];
-                    Array.Copy(buffer, pos, bytes, 0, count);
-                    return bytes;
-                } catch (UnauthorizedAccessException) //If we can't slice it, then we read it like a normal stream
-                { }
-                if (entireStream || src.Position == 0) return ms.ToArray(); //Uses InternalBlockCopy, quite fast...
-            }
+            
+            byte[] bytes = src is MemoryStream ? CopyMemoryStreamToBytes(src as MemoryStream, entireStream) : null;
+            if (bytes != null) return bytes;
 
             if (src.CanSeek) {
                 long pos = entireStream ? 0 : src.Position;
@@ -171,12 +197,57 @@ namespace ImageResizer.ExtensionMethods {
                 return bytes;
             } else {
                 //No seeking, so we have to buffer to an intermediate memory stream
-                var ms = new MemoryStream();
+                var ms = new MemoryStream(chunkSize);
                 CopyToStream(src, ms, entireStream, chunkSize);
                 return CopyToBytes(ms, true, chunkSize);
             }
         }
 
+        /// <summary>
+        /// Copies the current stream into a byte[] array of exact size
+        /// </summary>
+        /// <param name="src"></param>
+        /// <param name="entireStream">True to copy entire stream if seeakable, false to only copy remaining data.</param>
+        /// <param name="chunkSize">The buffer size to use (in bytes) if a buffer is required. Default: 4KiB</param>
+        /// <returns></returns>
+        public static async Task<byte[]> CopyToBytesAsync(this Stream src, bool entireStream, int chunkSize)
+        {
+            byte[] bytes = src is MemoryStream ? CopyMemoryStreamToBytes(src as MemoryStream, entireStream) : null;
+            if (bytes != null) return bytes;
+
+
+            if (src.CanSeek)
+            {
+                long pos = entireStream ? 0 : src.Position;
+                if (entireStream) src.Seek(0, SeekOrigin.Begin);
+
+                // Read the source file into a byte array.
+                int numBytesToRead = (int)(src.Length - pos);
+                bytes = new byte[numBytesToRead];
+                int numBytesRead = 0;
+                while (numBytesToRead > 0)
+                {
+                    // Read may return anything from 0 to numBytesToRead.
+                    int n = await src.ReadAsync(bytes, numBytesRead, numBytesToRead);
+
+                    // Break when the end of the file is reached.
+                    if (n == 0)
+                        break;
+
+                    numBytesRead += n;
+                    numBytesToRead -= n;
+                }
+                Debug.Assert(numBytesRead == bytes.Length);
+                return bytes;
+            }
+            else
+            {
+                //No seeking, so we have to buffer to an intermediate memory stream
+                var ms = new MemoryStream(chunkSize);
+                await src.CopyToAsync(ms, chunkSize);
+                return CopyToBytes(ms, true, chunkSize);
+            }
+        }
 
         /// <summary>
         /// Attempts to return a byte[] array containing the remaining portion of the stream.
@@ -185,6 +256,7 @@ namespace ImageResizer.ExtensionMethods {
         /// <param name="src"></param>
         /// <param name="length"></param>
         /// <param name="chunkSize"></param>
+        /// <param name="entireStream"></param>
         /// <returns></returns>
         public static byte[] CopyOrReturnBuffer(this Stream src, out long length, bool entireStream, int chunkSize) {
             if (src is MemoryStream) {

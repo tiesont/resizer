@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Drawing;
 using System.IO;
+using System.Drawing.Imaging;
 
 // Contains classes for calculating and rendering images, as well as for building image processing plugins.
 namespace ImageResizer.Resizing {
@@ -46,16 +47,16 @@ namespace ImageResizer.Resizing {
         /// <summary>
         /// Contains the set of extensions that are called for every method. 
         /// </summary>
-		[CLSCompliant(false)]
+        [CLSCompliant(false)]
         protected volatile IEnumerable<BuilderExtension> exts;
 
         /// <summary>
         /// Extend this to allow additional types of source objects to be accepted by transforming them into Bitmap instances.
         /// </summary>
         /// <param name="source"></param>
-		/// <param name="path"></param>
-		/// <param name="disposeSource"></param>
-		/// <param name="settings"></param>
+        /// <param name="path"></param>
+        /// <param name="disposeSource"></param>
+        /// <param name="settings"></param>
         protected virtual void PreLoadImage(ref object source, ref string path, ref bool disposeSource, ref ResizeSettings settings) {
             if (exts != null) foreach (AbstractImageProcessor p in exts) p.PreLoadImage(ref source, ref path, ref disposeSource, ref settings);
         }
@@ -155,6 +156,34 @@ namespace ImageResizer.Resizing {
                         return RequestedAction.Cancel;
             return RequestedAction.None;
         }
+
+        protected virtual RequestedAction BeforeEncode(ImageResizer.ImageJob job)
+        {
+            if (exts != null)
+                foreach (AbstractImageProcessor p in exts)
+                    if (p.BeforeEncode(job) == RequestedAction.Cancel)
+                        return RequestedAction.Cancel;
+            return RequestedAction.None;
+        }
+
+        protected virtual RequestedAction EndBuildJob(ImageResizer.ImageJob job)
+        {
+            if (exts != null)
+                foreach (AbstractImageProcessor p in exts)
+                    if (p.EndBuildJob(job) == RequestedAction.Cancel)
+                        return RequestedAction.Cancel;
+            return RequestedAction.None;
+        }
+
+        protected virtual RequestedAction InternalGraphicsDrawImage(ImageState state, Bitmap dest, Bitmap source, PointF[] targetArea, RectangleF sourceArea, float[][] colorMatrix) {
+            if (exts != null)
+                foreach (AbstractImageProcessor p in exts)
+                    if (p.InternalGraphicsDrawImage(state, dest,source,targetArea,sourceArea,colorMatrix) == RequestedAction.Cancel)
+                        return RequestedAction.Cancel;
+            return RequestedAction.None;
+
+        }
+     
 
 
         /// <summary>

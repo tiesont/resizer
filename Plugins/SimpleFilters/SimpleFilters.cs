@@ -11,17 +11,32 @@ using System.Drawing.Drawing2D;
 using ImageResizer.ExtensionMethods;
 
 namespace ImageResizer.Plugins.SimpleFilters {
+    /// <summary>
+    /// This plugin provides grayscale, sepia, brightness, saturation, contrast, inversion, and alpha filtering options. It also includes beta support for rounded corners.
+    /// </summary>
     public class SimpleFilters : BuilderExtension, IPlugin, IQuerystringPlugin {
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Configuration.Config c) {
             c.Plugins.add_plugin(this);
             return this;
         }
-
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Configuration.Config c) {
             c.Plugins.remove_plugin(this);
             return true;
         }
-
+        /// <summary>
+        /// Returns the querystrings command keys supported by this plugin. 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedQuerystringKeys() {
             return new string[] { "filter", "s.grayscale", "s.overlay", "s.shift", "s.sepia", "s.alpha", "s.brightness", "s.contrast", "s.saturation", "s.invert","s.roundcorners" };
         }
@@ -86,8 +101,7 @@ namespace ImageResizer.Plugins.SimpleFilters {
         }
 
         protected override RequestedAction PostCreateImageAttributes(ImageState s) {
-            if (s.copyAttibutes == null) return RequestedAction.None;
-
+            
             if (!s.settings.WasOneSpecified((string[])GetSupportedQuerystringKeys())) return RequestedAction.None;
 
             List<float[][]> filters = new List<float[][]>();
@@ -137,7 +151,7 @@ namespace ImageResizer.Plugins.SimpleFilters {
 
 
             if (filters.Count == 0) return RequestedAction.None;
-            if (filters.Count == 1) s.copyAttibutes.SetColorMatrix(new ColorMatrix(filters[0]));
+            if (filters.Count == 1) s.colorMatrix = filters[0];
             else {
                 //Multiple all the filters
                 float[][] first = filters[0];
@@ -145,7 +159,7 @@ namespace ImageResizer.Plugins.SimpleFilters {
                 for (int i = 1; i < filters.Count; i++) {
                     first = Multiply(first, filters[i]);
                 }
-                s.copyAttibutes.SetColorMatrix(new ColorMatrix(first));
+                s.colorMatrix = first;
 
             }
 

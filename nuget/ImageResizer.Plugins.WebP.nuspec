@@ -25,12 +25,12 @@ $plugins$
 </description>
 		<tags>ImageResizer webp encode deocode weppy resizer Imazen imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
-		  <dependency id="Imazen.WebP"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
+		  <dependency id="Imazen.WebP" version="[$version$,)" />
 		</dependencies>
 	</metadata>
   	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.WebP.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.WebP.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.WebP.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.WebP.xml" target="lib\net45" />
 	</files>
 </package>

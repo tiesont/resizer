@@ -13,16 +13,30 @@ namespace ImageResizer.Plugins.CropAround {
     /// </summary>
     public class CropAroundPlugin:BuilderExtension, IPlugin,IQuerystringPlugin  {
      
+        /// <summary>
+        /// Adds the plugin to the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public IPlugin Install(Configuration.Config c) {
             c.Plugins.add_plugin(this);
             return this;
         }
 
+        /// <summary>
+        /// Removes the plugin from the given configuration container
+        /// </summary>
+        /// <param name="c"></param>
+        /// <returns></returns>
         public bool Uninstall(Configuration.Config c) {
             c.Plugins.remove_plugin(this);
             return true;
         }
 
+        /// <summary>
+        /// Returns the querystrings command keys supported by this plugin. 
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<string> GetSupportedQuerystringKeys() {
             return new string[] { "c.focus", "c.zoom", "c.finalmode" };
         }
@@ -60,7 +74,7 @@ namespace ImageResizer.Plugins.CropAround {
 
             s.copyRect = box;
             
-            ///What is the vertical and horizontal aspect ratio different in result pixels?
+            //What is the vertical and horizontal aspect ratio different in result pixels?
             var padding = PolygonMath.ScaleInside(box.Size, targetSize);
             padding = new SizeF(targetSize.Width - padding.Width, targetSize.Height - padding.Height);
 

@@ -27,12 +27,12 @@ $plugins$
  </description>
 		<tags>ImageResizer Imazen Resizer CopyMetadata metadata exif properties imaging</tags>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		</dependencies>
 	</metadata>
   	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.CopyMetadata.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.CopyMetadata.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.CopyMetadata.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.CopyMetadata.xml" target="lib\net45" />
 		<file src="..\Plugins\CopyMetadata\Web.config.transform" target="content" />
 	</files>
 </package>

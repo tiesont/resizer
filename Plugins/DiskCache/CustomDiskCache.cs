@@ -11,13 +11,13 @@ using ImageResizer.Plugins.DiskCache.Async;
 using System.Globalization;
 
 namespace ImageResizer.Plugins.DiskCache {
-    public delegate void CacheResultHandler(CustomDiskCache sender, CacheResult r);
+    public delegate void CacheResultHandler(ICleanableCache sender, CacheResult r);
 
     /// <summary>
     /// Handles access to a disk-based file cache. Handles locking and versioning. 
     /// Supports subfolders for scalability.
     /// </summary>
-    public class CustomDiskCache {
+    public class CustomDiskCache:ICleanableCache {
         public string PhysicalCachePath { get; protected set; }
         protected int subfolders;
         protected ILoggerProvider lp;
@@ -43,12 +43,12 @@ namespace ImageResizer.Plugins.DiskCache {
         /// <summary>
         /// Provides string-based locking for file write access.
         /// </summary>
-        public LockProvider Locks {get;protected set;}
+        public ILockProvider Locks {get;protected set;}
 
         /// <summary>
         /// Provides string-based locking for image resizing (not writing, just processing). Prevents duplication of efforts in asynchronous mode, where 'Locks' is not being used.
         /// </summary>
-        public LockProvider QueueLocks { get; protected set; }
+        public ILockProvider QueueLocks { get; protected set; }
 
         /// <summary>
         /// Contains all the queued and in-progress writes to the cache. 
@@ -82,6 +82,7 @@ namespace ImageResizer.Plugins.DiskCache {
         /// <param name="extension"></param>
         /// <param name="writeCallback"></param>
         /// <param name="timeoutMs"></param>
+        /// <param name="asynchronous"></param>
         /// <returns></returns>
         public CacheResult GetCachedFile(string keyBasis, string extension, ResizeImageDelegate writeCallback,  int timeoutMs, bool asynchronous) {
             Stopwatch sw = null;
@@ -197,7 +198,7 @@ namespace ImageResizer.Plugins.DiskCache {
             }
             if (lp.Logger != null) {
                 sw.Stop();
-                lp.Logger.Trace("{0}ms: {3}{1} for {2}, Key: {4}", sw.ElapsedMilliseconds.ToString(NumberFormatInfo.InvariantInfo).PadLeft(4), result.Result.ToString(), result.RelativePath, asynchronous ? (asyncFailed ? "Fallback to sync  " : "Async ") : "", keyBasis);
+                lp.Logger.Trace("{0}ms: {3}{1} for {2}, Key: {4}", sw.ElapsedMilliseconds.ToString(NumberFormatInfo.InvariantInfo).PadLeft(4), result.Result.ToString(), result.RelativePath, asynchronous ? (asyncFailed ? "Fallback to sync writes  " : "AsyncWrites ") : "", keyBasis);
             }
             //Fire event
             if (CacheResultReturned != null) CacheResultReturned(this, result);
@@ -213,7 +214,6 @@ namespace ImageResizer.Plugins.DiskCache {
         /// <param name="physicalPath"></param>
         /// <param name="relativePath"></param>
         /// <param name="writeCallback"></param>
-        /// <param name="sourceModifiedUtc"></param>
         /// <param name="timeoutMs"></param>
         /// <param name="recheckFS"></param>
         /// <returns></returns>

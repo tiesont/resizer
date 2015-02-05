@@ -6,14 +6,14 @@
 		<authors>$author$</authors>
 		<description>Description</description>
 		<dependencies>
-		  <dependency id="ImageResizer"/>
+		  <dependency id="ImageResizer" version="[$version$,)" />
 		  <dependency id="AWSSDK" version="[2.0,3.0)" />
 		</dependencies>
 	</metadata>
 	<files>
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.dll" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.pdb" target="lib" />
-		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.xml" target="lib" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.dll" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.pdb" target="lib\net45" />
+		<file src="$pluginsdlldir$\ImageResizer.Plugins.S3Reader2.xml" target="lib\net45" />
 		<file src="..\Plugins\S3Reader2\**\*.cs" target="src" />
 	</files>
 </package>
