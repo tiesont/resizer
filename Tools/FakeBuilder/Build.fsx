@@ -376,7 +376,11 @@ Target "update_imageserv" (fun _ ->
         if isRelease then nugetVer.ToString()
         else nugetVer.ToString() + sprintf "%04d" (int32 buildNo)
     
-    if isNullOrEmpty img_repo then
+    let branch = environVar "APPVEYOR_REPO_BRANCH"
+    
+    if branch <> "master" && branch <> "develop" then
+        printf "Only master and develop branches are allowed to update imageserv, skipping\n"
+    elif isNullOrEmpty img_repo then
         printf "No image server information present, skipping update\n"
     else
         
@@ -393,7 +397,7 @@ Target "update_imageserv" (fun _ ->
         
         for nuSpec in Directory.GetFiles(rootDir + "nuget", "*.nuspec") do
             if not (nuSpec.Contains(".symbols.nuspec")) then
-                if not (nuSpec.Contains(".x86")) then
+                if not (nuSpec.Contains(".x64")) then
                     if not (nuSpec.Contains("Sample")) then
                         let pkg = (fileNameWithoutExt nuSpec)
                         WriteToFile true "paket.dependencies" ["nuget " + pkg + " " + ver]
