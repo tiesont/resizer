@@ -70,8 +70,6 @@
     <Compile Include="ISimpleBlockEncryptionService.cs" />
     <Compile Include="IMutableImageUrl.cs" />
     <Compile Include="IRequestEnvironment.cs" />
-    <Compile Include="Limit.cs" />
-    <Compile Include="RequestLimiting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestSigning.cs" />
     <Compile Include="SimpleSecureEncryption.cs" />
