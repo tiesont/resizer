@@ -13,11 +13,18 @@ namespace ImageResizer.Plugins.Security
 
     //Encryption; transmit the salt, IV, and access id.
     //Signing; 
-    class RequestSigning
+    public class RequestSigning
     {
 
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fullPath"></param>
+        /// <param name="query"></param>
+        /// <param name="id"></param>
+        /// <param name="secret"></param>
+        /// <returns></returns>
         public string SignRequest(string fullPath, string query, byte[] id, byte[] secret)
         {
             var normalizedQuery = new StringUtils().CanonicalizeQuery(query);

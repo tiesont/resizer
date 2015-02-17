@@ -19,25 +19,7 @@ namespace ImageResizer.Plugins.Security
          public bool AllowRequest{get{return false;}}
     }
     public interface IAuthorizationPolicy{
-        IAuthorizationResponse AuthorizeRequest(IDictionary<string, object> request);
-    }
-    /// <summary>
-    /// //Policy "read" - Allows get or head requests only. Prohibit PUT, PATCH, POST, etc.
-    /// </summary>
-    public class ReadOnlyPolicy:IAuthorizationPolicy{
-
-         public IAuthorizationResponse AuthorizeRequest(IDictionary<string,object> request)
-        {
-            
- 	        if ("GET".Equals(request["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase) ||
-                "HEAD".Equals(request["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase)){
-                return new AuthSuccess();
-            } else{
-                return new AuthFail();
-            }
-             //var inst = new Instructions(){ Width = 1; Height = 2, Format= "png", Mode = }
-             
-        }
+        IAuthorizationResponse AuthorizeRequest(IRequestEnvironment env);
     }
 
 
