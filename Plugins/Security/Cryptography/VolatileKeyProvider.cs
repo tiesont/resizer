@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace ImageResizer.Plugins.Security.Cryptography {
-    internal class VolatileKeyProvider: IKeyProvider {
+    internal class VolatileKeyProvider: ISecretKeyProvider {
 
         private object syncLock = new object{};
 

@@ -63,7 +63,7 @@
     <Compile Include="Authorization\IPAddressPolicy.cs" />
     <Compile Include="Authorization\ReadOnlyPolicy.cs" />
     <Compile Include="Cryptography\AppDataKeyProvider.cs" />
-    <Compile Include="Cryptography\IKeyProvider.cs" />
+    <Compile Include="Cryptography\ISecretKeyProvider.cs" />
     <Compile Include="Cryptography\VolatileKeyProvider.cs" />
     <Compile Include="Encrypted.cs" />
     <Compile Include="ExtensionMethods.cs" />

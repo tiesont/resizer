@@ -7,7 +7,8 @@ using System.Xml;
 using ImageResizer.Util;
 
 namespace ImageResizer.Plugins.Security.Cryptography {
-    internal class AppDataKeyProvider:IKeyProvider {
+    //Can easily break with web gardens. Not multi-process safe.
+    internal class AppDataKeyProvider:ISecretKeyProvider {
 
         private string _keyFilePath;
         /// <summary>
