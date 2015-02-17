@@ -9,7 +9,8 @@ using ImageResizer.Plugins.Encrypted;
 namespace ComplexWebApplication.Misc {
     public partial class UrlEncryption : System.Web.UI.Page {
         protected void Page_Load(object sender, EventArgs e) {
-            img.ImageUrl = EncryptedPlugin.First.EncryptPathAndQuery("~/fountain-small.jpg?width=100");
+            img.ImageUrl = EncryptedPlugin.First.EncryptPathAndQuery("~/fountain-small.jpg?width=100"); 
+            img2.Src = EncryptedPlugin.First.EncryptPathAndQuery(ResolveUrl("~/fountain-small.jpg?width=100"));
         }
     }
 }

@@ -10,6 +10,7 @@
     <form id="form1" runat="server">
     <div>
     <asp:Image ID='img' runat="server" />
+        <img id="img2" runat="server" />
     </div>
     </form>
 </body>
