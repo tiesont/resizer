@@ -9,7 +9,7 @@ namespace ImageResizer.Plugins.Security.Authorization
     /// <summary>
     /// Doesn't even make sense unless we support POST/PUT/PATCH or something.
     /// </summary>
-    private class ReadOnlyPolicy:IEmbeddedAuthorizationPolicy
+     class ReadOnlyPolicy:IEmbeddedAuthorizationPolicy
     {
 
         public void SerializeTo(IMutableImageUrl url)

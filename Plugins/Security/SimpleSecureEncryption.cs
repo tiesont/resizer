@@ -8,7 +8,7 @@ using System.IO;
 
 namespace ImageResizer.Plugins.Security {
     /// <summary>
-    /// Provides correct 256-bit AES encryption and decryption for small data sets. 
+    /// Provides correct 256-bit AES encryption and decryption for small data sets. Warning! uses a fixed salt, may be vulnerable to rainbow-style and replay attacks.
     /// </summary>
     public class SimpleSecureEncryption {
 
