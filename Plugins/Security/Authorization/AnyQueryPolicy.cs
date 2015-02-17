@@ -20,7 +20,7 @@ namespace ImageResizer.Plugins.Security.Authorization
             
 
         }
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IDictionary<string, object> requestEnvironment)
+        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment requestEnvironment)
         {
             url.SetQueryPairs(new List<Tuple<string, string>>());
         }

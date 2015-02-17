@@ -28,13 +28,28 @@ namespace ImageResizer.Plugins.Security.Authorization
             return new IPAddressPolicy(addr);
         }
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IDictionary<string, object> requestEnvironment)
+        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env)
         {
-            if (requestEnvironment != null){
-                var remoteIP = requestEnvironment["server.RemoteIpAddress"];
-                //var headers = requestEnvironment["owin.RequestHeaders"] as IDictionary<string, string[]>;
+            if (env != null)
+            {
+                string remoteIP = null;
+                if (env.HasOwin)
+                {
+                    remoteIP = env.GetOwin()["server.RemoteIpAddress"] as string;
+                }
+                if (string.IsNullOrEmpty(remoteIP) && env.HasContext){
+                    dynamic context = env.GetConext();
+                    dynamic request = context.Request;
+                    remoteIP = context.Request.UserHostAddress; //IsSecureConnection
+                }
+                if (remoteIP == null)
+                {
+                    throw new EmbeddedAuthorizationException("Signed request only valid from client " + allowedAddress + ". No client IP address found associated with request environment. ");
+                }
                 if (!remoteIP.Equals(allowedAddress))
+                {
                     throw new EmbeddedAuthorizationException("Signed request only valid from client " + allowedAddress + ", but arrived from " + remoteIP);
+                }
             }
         }
 

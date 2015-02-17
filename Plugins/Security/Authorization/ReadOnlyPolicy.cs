@@ -27,12 +27,26 @@ namespace ImageResizer.Plugins.Security.Authorization
  	        url.RemovePolicy("read");
         }
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IDictionary<string,object> requestEnvironment)
+        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env)
         {
-            
-            var isRead = requestEnvironment == null || "GET".Equals(requestEnvironment["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase) ||
-                        "HEAD".Equals(requestEnvironment["owin.RequestMethod"] as string, StringComparison.OrdinalIgnoreCase);
-            if (!isRead) throw new EmbeddedAuthorizationException("Only GET and HEAD HTTP requests permitted when ReadOnlyPolicy is applied.");
+            if (env != null)
+            {
+                string httpMethod = null;
+                if (env.HasOwin)
+                {
+                    httpMethod = env.GetOwin()["owin.RequestMethod"] as string;
+                }
+                if (httpMethod == null && env.HasContext){
+                    httpMethod = ((dynamic)env.GetConext()).Request.HttpMethod;
+                }
+                if (httpMethod == null){
+                    throw new EmbeddedAuthorizationException("Failed to access HTTP method from request environment. Please file a bug, with details about your server and configuration.");
+                }
+                if (!"GET".Equals(httpMethod, StringComparison.OrdinalIgnoreCase) &&
+                    !"HEAD".Equals(httpMethod, StringComparison.OrdinalIgnoreCase)){
+                    throw new EmbeddedAuthorizationException("Only GET and HEAD HTTP requests permitted when ReadOnlyPolicy is applied.");
+                }
+            }
         }
     }
 }

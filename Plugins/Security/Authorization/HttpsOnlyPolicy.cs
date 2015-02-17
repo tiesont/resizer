@@ -23,12 +23,28 @@ namespace ImageResizer.Plugins.Security.Authorization
             url.RemovePolicy("https");
         }
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IDictionary<string, object> requestEnvironment)
+        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env)
         {
-            if (requestEnvironment != null)
+            if (env != null)
             {
-                var scheme = requestEnvironment["owin.RequestScheme"] as string;
-                if (!scheme.Equals("https", StringComparison.OrdinalIgnoreCase))
+                bool? isHttps = null;
+                if (env.HasOwin)
+                {
+                    var scheme = env.GetOwin()["owin.RequestScheme"] as string;
+                    if (scheme != null)
+                    {
+                        isHttps = scheme.Equals("https", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                if (env.HasContext && isHttps == null)
+                {
+                    dynamic context = env.GetConext();
+                    dynamic request = context.Request;
+                    isHttps = context.Request.IsSecureConnection;
+                }
+                if (!isHttps.HasValue)
+                    throw new EmbeddedAuthorizationException("Failed to acquire information from the request environment about whether HTTPS was used. Please file a bug.");
+                if (!isHttps.Value)
                     throw new EmbeddedAuthorizationException("This signature is only valid over an HTTPS connection");
             }
         }

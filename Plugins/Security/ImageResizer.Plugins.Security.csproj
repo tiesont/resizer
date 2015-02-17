@@ -44,6 +44,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Web" />
     <Reference Include="System.XML" />
@@ -67,6 +68,7 @@
     <Compile Include="Encrypted.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="IMutableImageUrl.cs" />
+    <Compile Include="IRequestEnvironment.cs" />
     <Compile Include="Limit.cs" />
     <Compile Include="RequestLimiting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

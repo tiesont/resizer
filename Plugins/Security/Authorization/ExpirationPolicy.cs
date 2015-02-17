@@ -35,7 +35,7 @@ namespace ImageResizer.Plugins.Security.Authorization
             }
             
         }
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IDictionary<string, object> requestEnvironment)
+        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment requestEnvironment)
         {
             if (AccessExpires < DateTime.UtcNow) throw new EmbeddedAuthorizationException("This URL has expired");
         }
