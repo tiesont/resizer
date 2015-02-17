@@ -8,9 +8,10 @@ using System.IO;
 
 namespace ImageResizer.Plugins.Security {
     /// <summary>
-    /// Provides correct 256-bit AES encryption and decryption for small data sets. Warning! uses a fixed salt, may be vulnerable to rainbow-style and replay attacks.
+    /// Provides correct 256-bit AES encryption and decryption for small data sets. Encryption uses a new random IV every time; result is not deterministic. 
     /// </summary>
-    public class SimpleSecureEncryption {
+    public class SimpleSecureEncryption : ISimpleBlockEncryptionService
+    {
 
         /// <summary>
         /// Creates an encryption/decryption system using a 256-bit key derived from the specified byte sequence. 32-bit or longer phrases are suggested.
@@ -29,7 +30,10 @@ namespace ImageResizer.Plugins.Security {
 
         private byte[] keyBasis;
         /// <summary>
-        /// The fixed 16-byte salt used for key derivation. This has to be fixed and unchanging to permit consistent key derivation across servers
+        /// The fixed 16-byte salt used for key derivation, This has to be fixed and unchanging to permit consistent key derivation across servers. 
+        /// Note, this is not part of the encryption directly, but rather used to derive a key from the raw keyBasis bytes provided to the constructor. This key is then used to encrypt, and encryption generates a unique IV every time.
+        /// The bytes derived from this salt are never stored; but the original passphrase or keyBasis bytes may be. They should, if stored, be secured. 
+        /// I.E, this salt is not important, it is neither used for critical hashing or encryption, but for length normalization in GetKey(). We are not trying to introduce any type of security with it. That is handled by the encryption itself and your key storage system.
         /// </summary>
         private byte[] salt = new byte[] { 240, 193, 22, 63, 44, 83, 186, 251, 74, 193, 241, 209, 220, 199, 37, 76 };
 
@@ -98,25 +102,81 @@ namespace ImageResizer.Plugins.Security {
         public byte[] Encrypt(byte[] data, out byte[] iv) {
             var rm = GetAlgorithm();
             try {
+   
                 rm.GenerateIV();
                 iv = rm.IV;
                 rm.Key = GetKey();
-                using (var encrypt = rm.CreateEncryptor())
-                using (var ms = new MemoryStream(data.Length / BlockSizeInBytes)) {
-                    using (var s = new CryptoStream(ms, encrypt, CryptoStreamMode.Write)) {
-                        s.Write(data, 0, data.Length);
-                        s.Flush();
-                        s.FlushFinalBlock();
-                        ms.Seek(0, SeekOrigin.Begin);
-                        return ms.CopyToBytes();
-                    }
-                }
+                return EncryptWith(rm, data);
             } finally {
                 rm.Clear();
             }
         }
 
+        /// <summary>
+        /// Generates a secure, random IV (initialization vector)
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GenerateIV()
+        {
+            var rm = GetAlgorithm();
+            try
+            {
+
+                rm.GenerateIV();
+                return rm.IV;
+            }
+            finally
+            {
+                rm.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Encrypts the given data using a user-provided intiailization vector (16 bytes). 
+        /// Unlike Encrypt, this will produce a deterministic result; but because the result is deterministic, it can be hacked, and your passphrase eventually uncovered. If you cryptographically generate and cache a new IV for every URL (see GenerateIV()), this vulnerability is drastically reduced. 
+        /// At the same time, it's much smarter to simply cache the result of Encrypt() proper, and use that instead.
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="iv"></param>
+        /// <returns></returns>
+        public byte[] PoorlyEncrypt(byte[] data,  byte[] iv)
+        {
+            if (iv.Length != BlockSizeInBytes) throw new ArgumentOutOfRangeException("The specified IV is invalid - an " + BlockSizeInBytes + " byte array is required.");
 
 
+            var rm = GetAlgorithm();
+            try
+            {
+                rm.IV = iv;
+                rm.Key = GetKey();
+                return EncryptWith(rm, data);
+            }
+            finally
+            {
+                rm.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Internal use  only- must be provided a securely configured Rijndael instance.
+        /// </summary>
+        /// <param name="alg"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private byte[] EncryptWith(Rijndael alg, byte[] data)
+        {
+            using (var encrypt = alg.CreateEncryptor())
+            using (var ms = new MemoryStream(data.Length / BlockSizeInBytes))
+            {
+                using (var s = new CryptoStream(ms, encrypt, CryptoStreamMode.Write))
+                {
+                    s.Write(data, 0, data.Length);
+                    s.Flush();
+                    s.FlushFinalBlock();
+                    ms.Seek(0, SeekOrigin.Begin);
+                    return ms.CopyToBytes();
+                }
+            }
+        }
     }
 }

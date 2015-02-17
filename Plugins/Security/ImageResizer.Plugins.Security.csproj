@@ -67,6 +67,7 @@
     <Compile Include="Cryptography\VolatileKeyProvider.cs" />
     <Compile Include="Encrypted.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="ISimpleBlockEncryptionService.cs" />
     <Compile Include="IMutableImageUrl.cs" />
     <Compile Include="IRequestEnvironment.cs" />
     <Compile Include="Limit.cs" />
