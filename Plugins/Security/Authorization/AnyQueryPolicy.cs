@@ -20,16 +20,22 @@ namespace ImageResizer.Plugins.Security.Authorization
             
 
         }
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment requestEnvironment)
-        {
-            url.SetQueryPairs(new List<Tuple<string, string>>());
-        }
-
-
+  
 
         public void RemoveFrom(IMutableImageUrl url)
         {
             url.RemovePolicy("anyquery");
+        }
+
+
+        public void FilterUrlForHashing(IMutableImageUrl url)
+        {
+            url.SetQueryPairs(new List<Tuple<string, string>>());
+        }
+
+        public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
+        {
+            return new AuthSuccess();
         }
     }
 }

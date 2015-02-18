@@ -56,9 +56,12 @@
     <Compile Include="AuthorizationPolicies.cs" />
     <Compile Include="Authorization\AllowValuesPolicy.cs" />
     <Compile Include="Authorization\AnyQueryPolicy.cs" />
+    <Compile Include="Authorization\AuthorizationResult.cs" />
     <Compile Include="Authorization\EmbeddedAuthorizationException.cs" />
     <Compile Include="Authorization\ExpirationPolicy.cs" />
     <Compile Include="Authorization\HttpsOnlyPolicy.cs" />
+    <Compile Include="Authorization\IAuthorizationPolicy.cs" />
+    <Compile Include="Authorization\IAuthorizationResult.cs" />
     <Compile Include="Authorization\IEmbeddedAuthorizationPolicy.cs" />
     <Compile Include="Authorization\IPAddressPolicy.cs" />
     <Compile Include="Authorization\ReadOnlyPolicy.cs" />

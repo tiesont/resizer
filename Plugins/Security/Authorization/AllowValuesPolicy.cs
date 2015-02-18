@@ -49,32 +49,53 @@ namespace ImageResizer.Plugins.Security.Authorization
         }
 
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment requestEnvironment)
+
+
+        public void FilterUrlForHashing(IMutableImageUrl url)
         {
+            if (Authorize(url, null).DenyRequest == false)
+            {
+                foreach (var pair in AllowedValues)
+                {
+                    url.SetQueryValue(pair.Key, null);
+                }
+            }
+        }
+
+        public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
+        {
+            IAuthorizationResult result = new AuthSuccess();
             foreach (var pair in AllowedValues)
             {
                 var actualValues = url.GetQueryValues(pair.Key);
-                if (actualValues.Count() > 1) throw new EmbeddedAuthorizationException("AllowModifiedValuesPolicy does not support duplicate querystring keys. Found duplicates for " + pair.Key);
+                if (actualValues.Count() > 1)
+                {
+                    result = result.Combine(new AuthFail("AllowModifiedValuesPolicy does not support duplicate querystring keys. Found duplicates for " + pair.Key));
+                    continue;
+                }
                 var allowedValues = pair.Value;
 
                 bool passed = false;
-                if (allowedValues.Contains(AllowValuesPolicy.Wildcard)) 
+                if (allowedValues.Contains(AllowValuesPolicy.Wildcard))
                     passed = true;
                 if (actualValues.Count() == 0 && allowedValues.Contains(AllowValuesPolicy.Null, StringComparer.Ordinal))
                     passed = true;
-                else if (actualValues.Count() == 0) throw new EmbeddedAuthorizationException("The supplied AllowModifiedValuesPolicy does not permit key '" + pair.Key + "' to be omitted.");
+                else if (actualValues.Count() == 0)
+                {
+                    result = result.Combine(new AuthFail("The supplied AllowModifiedValuesPolicy does not permit key '" + pair.Key + "' to be omitted."));
+                    continue;
+                }
 
                 var actualValue = actualValues.First();
                 if (allowedValues.Contains(actualValue, StringComparer.Ordinal))
                     passed = false;
 
-                if (!passed) throw new EmbeddedAuthorizationException("The supplied AllowModifiedValuesPolicy does not permit key '" + pair.Key + "' to be set to '" + actualValue + "'. Allowed values are: " + String.Join("  ", allowedValues));
-                
-                //If it met all of the criteria, we simply delete that pair from the signing and validation process
-                url.SetQueryValue(pair.Key,null);
+                if (!passed)
+                {
+                    result = result.Combine(new AuthFail("The supplied AllowModifiedValuesPolicy does not permit key '" + pair.Key + "' to be set to '" + actualValue + "'. Allowed values are: " + String.Join("  ", allowedValues)));
+                }
             }
+            return result;
         }
-
-
     }
 }

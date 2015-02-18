@@ -23,30 +23,37 @@ namespace ImageResizer.Plugins.Security.Authorization
             url.RemovePolicy("https");
         }
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env)
+
+
+        public void FilterUrlForHashing(IMutableImageUrl url)
         {
-            if (env != null)
-            {
-                bool? isHttps = null;
-                if (env.HasOwin)
-                {
-                    var scheme = env.GetOwin()["owin.RequestScheme"] as string;
-                    if (scheme != null)
-                    {
-                        isHttps = scheme.Equals("https", StringComparison.OrdinalIgnoreCase);
-                    }
-                }
-                if (env.HasContext && isHttps == null)
-                {
-                    dynamic context = env.GetConext();
-                    dynamic request = context.Request;
-                    isHttps = context.Request.IsSecureConnection;
-                }
-                if (!isHttps.HasValue)
-                    throw new EmbeddedAuthorizationException("Failed to acquire information from the request environment about whether HTTPS was used. Please file a bug.");
-                if (!isHttps.Value)
-                    throw new EmbeddedAuthorizationException("This signature is only valid over an HTTPS connection");
-            }
         }
+
+        public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
+        {
+            bool? isHttps = null;
+            if (env.HasOwin)
+            {
+                var scheme = env.GetOwin()["owin.RequestScheme"] as string;
+                if (scheme != null)
+                {
+                    isHttps = scheme.Equals("https", StringComparison.OrdinalIgnoreCase);
+                }
+            }
+            if (env.HasContext && isHttps == null)
+            {
+                dynamic context = env.GetConext();
+                dynamic request = context.Request;
+                isHttps = context.Request.IsSecureConnection;
+            }
+            if (!isHttps.HasValue)
+                throw new EmbeddedAuthorizationException("Failed to acquire information from the request environment about whether HTTPS was used. Please file a bug.");
+            if (!isHttps.Value)
+                return new AuthFail("This signature is only valid over an HTTPS connection");
+
+            return AuthSuccess.Instance;
+
+        }
+
     }
 }

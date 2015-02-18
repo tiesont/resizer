@@ -28,37 +28,43 @@ namespace ImageResizer.Plugins.Security.Authorization
             return new IPAddressPolicy(addr);
         }
 
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env)
-        {
-            if (env != null)
-            {
-                string remoteIP = null;
-                if (env.HasOwin)
-                {
-                    remoteIP = env.GetOwin()["server.RemoteIpAddress"] as string;
-                }
-                if (string.IsNullOrEmpty(remoteIP) && env.HasContext){
-                    dynamic context = env.GetConext();
-                    dynamic request = context.Request;
-                    remoteIP = context.Request.UserHostAddress; //IsSecureConnection
-                }
-                if (remoteIP == null)
-                {
-                    throw new EmbeddedAuthorizationException("Signed request only valid from client " + allowedAddress + ". No client IP address found associated with request environment. ");
-                }
-                if (!remoteIP.Equals(allowedAddress))
-                {
-                    throw new EmbeddedAuthorizationException("Signed request only valid from client " + allowedAddress + ", but arrived from " + remoteIP);
-                }
-            }
-        }
-
 
 
         public void RemoveFrom(IMutableImageUrl url)
         {
             url.RemovePolicy("ipaddr");
             url.SetQueryValue("ri-ipaddr-only",null);
+        }
+
+
+        public void FilterUrlForHashing(IMutableImageUrl url)
+        {
+            
+        }
+
+        public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
+        {
+            string remoteIP = null;
+            if (env.HasOwin)
+            {
+                remoteIP = env.GetOwin()["server.RemoteIpAddress"] as string;
+            }
+            if (string.IsNullOrEmpty(remoteIP) && env.HasContext)
+            {
+                dynamic context = env.GetConext();
+                dynamic request = context.Request;
+                remoteIP = context.Request.UserHostAddress; //IsSecureConnection
+            }
+            if (remoteIP == null)
+            {
+                //TODO: should this be considered a bug, and throw an exception? 
+                return new AuthFail("Signed request only valid from client " + allowedAddress + ". No client IP address found associated with request environment. ");
+            }
+            if (!remoteIP.Equals(allowedAddress))
+            {
+                return new AuthFail("Signed request only valid from client " + allowedAddress + ", but arrived from " + remoteIP);
+            }
+            return AuthSuccess.Instance;
         }
     }
 }

@@ -11,8 +11,9 @@ namespace ImageResizer.Plugins.Security.Authorization
         void SerializeTo(IMutableImageUrl url);
         IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url);
         void RemoveFrom(IMutableImageUrl url);
-        void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment env);
 
+        void FilterUrlForHashing(IMutableImageUrl url);
+        IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env);
 
     }
 }

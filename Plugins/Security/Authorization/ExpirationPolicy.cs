@@ -35,18 +35,25 @@ namespace ImageResizer.Plugins.Security.Authorization
             }
             
         }
-        public void ValidateAndFilterUrlForHashing(IMutableImageUrl url, IRequestEnvironment requestEnvironment)
-        {
-            if (AccessExpires < DateTime.UtcNow) throw new EmbeddedAuthorizationException("This URL has expired");
-        }
-
-
+  
 
 
         public void RemoveFrom(IMutableImageUrl url)
         {
             url.SetQueryValue("ri-expires", null);
             url.RemovePolicy("expires");
+        }
+
+
+        public void FilterUrlForHashing(IMutableImageUrl url)
+        {
+            
+        }
+
+        public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
+        {
+            if (AccessExpires < DateTime.UtcNow) return new AuthFail("This URL has expired.");
+            else return AuthSuccess.Instance;
         }
     }
 }
