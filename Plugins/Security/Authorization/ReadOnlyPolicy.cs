@@ -9,29 +9,30 @@ namespace ImageResizer.Plugins.Security.Authorization
     /// <summary>
     /// Doesn't even make sense unless we support POST/PUT/PATCH or something.
     /// </summary>
-     class ReadOnlyPolicy:IEmbeddedAuthorizationPolicy
+    class ReadOnlyPolicy : IEmbeddedAuthorizationPolicy
     {
 
+        public static string Id { get { return "read"; } }
         public void SerializeTo(IMutableImageUrl url)
         {
- 	        url.EnsurePolicyAdded("read");
+            url.EnsurePolicyAdded(Id);
         }
 
         public IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url)
         {
- 	        return url.HasPolicy("read") ? new ReadOnlyPolicy() : null;
+            return url.HasPolicy(Id) ? new ReadOnlyPolicy() : null;
         }
 
         public void RemoveFrom(IMutableImageUrl url)
         {
- 	        url.RemovePolicy("read");
+            url.RemovePolicy(Id);
         }
 
 
 
         public void FilterUrlForHashing(IMutableImageUrl url)
         {
-           
+
         }
 
         public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)

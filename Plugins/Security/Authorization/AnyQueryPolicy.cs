@@ -8,14 +8,15 @@ namespace ImageResizer.Plugins.Security.Authorization
 {
     public class AnyQueryPolicy: IEmbeddedAuthorizationPolicy
     {
+        public static string Id { get { return "anyquery"; } }
         public void SerializeTo(IMutableImageUrl url)
         {
-            url.EnsurePolicyAdded("anyquery");
+            url.EnsurePolicyAdded(Id);
         }
 
         public IEmbeddedAuthorizationPolicy  DeserializeFrom(IImageUrl url)
         {
-            if (!url.HasPolicy("anyquery")) return null;
+            if (!url.HasPolicy(Id)) return null;
             return new AnyQueryPolicy();
             
 
@@ -24,7 +25,7 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public void RemoveFrom(IMutableImageUrl url)
         {
-            url.RemovePolicy("anyquery");
+            url.RemovePolicy(Id);
         }
 
 

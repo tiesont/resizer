@@ -8,21 +8,32 @@ namespace ImageResizer.Plugins.Security.Authorization
 {
     public class IPAddressPolicy :IEmbeddedAuthorizationPolicy
     {
+        public static string Id { get { return "ipaddr"; } }
+
+        /// <summary>
+        /// Warning! The parameterless constructor produces an instance that can only be used for calling DeserializeFrom()
+        /// </summary>
+        public IPAddressPolicy()
+        {
+
+        }
         public IPAddressPolicy(string allowedIAddress)
         {
             allowedAddress = allowedIAddress;
         }
 
-        private string allowedAddress;
+        private string allowedAddress = null;
 
         public void SerializeTo(IMutableImageUrl url)
         {
-            url.EnsurePolicyAdded("ipaddr");
+            if (allowedAddress == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+            url.EnsurePolicyAdded(Id);
+            url.SetQueryValue("ri-ipaddr-only", allowedAddress);
         }
 
         public IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url)
         {
-            if (!url.HasPolicy("ipaddr")) return null;
+            if (!url.HasPolicy(Id)) return null;
             string addr = url.GetQueryValue("ri-ipaddr-only");
             if (string.IsNullOrEmpty(addr)) return null;
             return new IPAddressPolicy(addr);
@@ -32,7 +43,7 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public void RemoveFrom(IMutableImageUrl url)
         {
-            url.RemovePolicy("ipaddr");
+            url.RemovePolicy(Id);
             url.SetQueryValue("ri-ipaddr-only",null);
         }
 
@@ -44,6 +55,8 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
         {
+            if (allowedAddress == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+
             string remoteIP = null;
             if (env.HasOwin)
             {

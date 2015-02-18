@@ -10,7 +10,8 @@ namespace ImageResizer.Plugins.Security.Authorization
     public class AllowValuesPolicy: IEmbeddedAuthorizationPolicy
     {
 
-        public static string PolicyId = "allowvalues";
+        public static string Id { get { return "allowvalues"; } }
+
         public static string KeyPrefix = "ri-allowed-";
         public static string Null = "(null)";
         public static string Wildcard = "(*)";
@@ -18,7 +19,9 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public void SerializeTo(IMutableImageUrl url)
         {
-            url.EnsurePolicyAdded(PolicyId);
+            if (AllowedValues == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+
+            url.EnsurePolicyAdded(Id);
             foreach (var pair in AllowedValues)
             {
                 url.SetList(KeyPrefix + pair.Key, pair.Value);
@@ -26,12 +29,12 @@ namespace ImageResizer.Plugins.Security.Authorization
         }
         public void RemoveFrom(IMutableImageUrl url)
         {
-            url.RemovePolicy(PolicyId);
+            url.RemovePolicy(Id);
         }
 
         public IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url)
         {
-            if (!url.HasPolicy(PolicyId)) return null;
+            if (!url.HasPolicy(Id)) return null;
 
             var p = new AllowValuesPolicy();
             var keys = url.GetQueryPairs().Where((t) => t.Item1.StartsWith(KeyPrefix, StringComparison.Ordinal)).Select((t) => t.Item1);
@@ -53,6 +56,8 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public void FilterUrlForHashing(IMutableImageUrl url)
         {
+            if (AllowedValues == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+
             if (Authorize(url, null).DenyRequest == false)
             {
                 foreach (var pair in AllowedValues)
@@ -64,6 +69,9 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
         {
+            if (AllowedValues == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+
+
             IAuthorizationResult result = new AuthSuccess();
             foreach (var pair in AllowedValues)
             {

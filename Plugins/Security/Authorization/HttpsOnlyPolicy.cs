@@ -8,19 +8,21 @@ namespace ImageResizer.Plugins.Security.Authorization
 {
     public class HttpsOnlyPolicy:IEmbeddedAuthorizationPolicy
     {
+        public static string Id { get { return "https"; } }
+
         public void SerializeTo(IMutableImageUrl url)
         {
-            url.EnsurePolicyAdded("https");
+            url.EnsurePolicyAdded(Id);
         }
 
         public IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url)
         {
-            return url.HasPolicy("https") ? new HttpsOnlyPolicy() : null;
+            return url.HasPolicy(Id) ? new HttpsOnlyPolicy() : null;
         }
 
         public void RemoveFrom(IMutableImageUrl url)
         {
-            url.RemovePolicy("https");
+            url.RemovePolicy(Id);
         }
 
 

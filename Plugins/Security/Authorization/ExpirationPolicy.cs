@@ -8,22 +8,33 @@ namespace ImageResizer.Plugins.Security.Authorization
 {
     public class ExpirationPolicy:IEmbeddedAuthorizationPolicy
     {
+        public static string Id { get { return "expires"; } }
+
         public ExpirationPolicy(DateTime accessExpiresUtc)
         {
             AccessExpires = accessExpiresUtc;
         }
-        public DateTime AccessExpires;
+        /// <summary>
+        /// Warning! The parameterless constructor produces an instance that can only be used for calling DeserializeFrom()
+        /// </summary>
+        public ExpirationPolicy()
+        {
+            AccessExpires = null;
+        }
+
+        public DateTime? AccessExpires;
         public void SerializeTo(IMutableImageUrl url)
         {
-            url.EnsurePolicyAdded("expires");
-            url.SetQueryValue("ri-expires", (AccessExpires.ToUniversalTime() - Epoch).TotalSeconds.ToString());
+            if (AccessExpires == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+            url.EnsurePolicyAdded(Id);
+            url.SetQueryValue("ri-expires", (AccessExpires.Value.ToUniversalTime() - Epoch).TotalSeconds.ToString());
         }
 
         private DateTime Epoch { get { return new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc); } }
 
         public IEmbeddedAuthorizationPolicy DeserializeFrom(IImageUrl url)
         {
-            if (!url.HasPolicy("expires")) return null;
+            if (!url.HasPolicy(Id)) return null;
             string val = url.GetQueryValue("ri-expires");
             int seconds;
             if (int.TryParse(val,out seconds)){
@@ -41,7 +52,7 @@ namespace ImageResizer.Plugins.Security.Authorization
         public void RemoveFrom(IMutableImageUrl url)
         {
             url.SetQueryValue("ri-expires", null);
-            url.RemovePolicy("expires");
+            url.RemovePolicy(Id);
         }
 
 
@@ -52,6 +63,8 @@ namespace ImageResizer.Plugins.Security.Authorization
 
         public IAuthorizationResult Authorize(IImageUrl url, IRequestEnvironment env)
         {
+            if (AccessExpires == null) throw new InvalidOperationException("This policy has not been configured. It may only be used to deserialize new policies.");
+
             if (AccessExpires < DateTime.UtcNow) return new AuthFail("This URL has expired.");
             else return AuthSuccess.Instance;
         }
