@@ -53,14 +53,13 @@
     <Compile Include="..\..\Core\SharedAssemblyInfo.cs">
       <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="AuthorizationPolicies.cs" />
+    <Compile Include="Primitives\RequestEnvironmentContext.cs" />
     <Compile Include="Authorization\AllowValuesPolicy.cs" />
     <Compile Include="Authorization\AnyQueryPolicy.cs" />
     <Compile Include="Authorization\AuthorizationResult.cs" />
     <Compile Include="Authorization\EmbeddedAuthorizationException.cs" />
     <Compile Include="Authorization\ExpirationPolicy.cs" />
     <Compile Include="Authorization\HttpsOnlyPolicy.cs" />
-    <Compile Include="Authorization\IAuthorizationPolicy.cs" />
     <Compile Include="Authorization\IAuthorizationResult.cs" />
     <Compile Include="Authorization\IEmbeddedAuthorizationPolicy.cs" />
     <Compile Include="Authorization\IPAddressPolicy.cs" />
@@ -68,11 +67,17 @@
     <Compile Include="Cryptography\AppDataKeyProvider.cs" />
     <Compile Include="Cryptography\ISecretKeyProvider.cs" />
     <Compile Include="Cryptography\VolatileKeyProvider.cs" />
+    <Compile Include="Primitives\QuerystringOverDictionary.cs" />
     <Compile Include="Encrypted.cs" />
     <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="Primitives\IImageUrl.cs" />
+    <Compile Include="Primitives\MutableImageUrlProxy.cs" />
+    <Compile Include="Primitives\IMutableQuerystring.cs" />
+    <Compile Include="Primitives\IQuerystring.cs" />
     <Compile Include="ISimpleBlockEncryptionService.cs" />
-    <Compile Include="IMutableImageUrl.cs" />
-    <Compile Include="IRequestEnvironment.cs" />
+    <Compile Include="Primitives\IMutableImageUrl.cs" />
+    <Compile Include="Primitives\IRequestEnvironment.cs" />
+    <Compile Include="Primitives\QuerystringOverNvc.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestSigning.cs" />
     <Compile Include="SimpleSecureEncryption.cs" />

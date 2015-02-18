@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 namespace ImageResizer.Plugins.Security
 {
     public static class IMutableImageUrlExtensionMethods
-    {   
-        public static string GetQueryValue(this IImageUrl url, string key){
+    {
+        public static string GetQueryValue(this IQuerystring url, string key)
+        {
             return String.Join(",", url.GetQueryValues(key).Where((s) => s != null));
         }
 
@@ -19,7 +20,7 @@ namespace ImageResizer.Plugins.Security
         /// <param name="key"></param>
         /// <param name="delimiter"></param>
         /// <returns></returns>
-        public static IEnumerable<string> ParseList(this IImageUrl url, string key, string delimiter = ",")
+        public static IEnumerable<string> ParseList(this IQuerystring url, string key, string delimiter = ",")
         {
             var list = new List<string>();
             foreach (var value in url.GetQueryValues(key))
@@ -31,21 +32,21 @@ namespace ImageResizer.Plugins.Security
             return list;
         }
 
-        public static void SetList(this IMutableImageUrl url, string key, IEnumerable<string> values, string delimiter = ",")
+        public static void SetList(this IMutableQuerystring url, string key, IEnumerable<string> values, string delimiter = ",")
         {
             url.SetQueryValue(key, String.Join(delimiter, values.Select((s) => Uri.EscapeDataString(s))));
         }
-        public static IEnumerable<string> EnumerateAppliedPolicyNames(this IImageUrl url)
+        public static IEnumerable<string> EnumerateAppliedPolicyNames(this IQuerystring url)
         {
             return url.ParseList("ri-policies").Where((s) => s != string.Empty);
         }
 
-        public static bool HasPolicy(this IImageUrl url, string name)
+        public static bool HasPolicy(this IQuerystring url, string name)
         {
             return EnumerateAppliedPolicyNames(url).Any((s) => s.Equals(name, StringComparison.Ordinal));
         }
-         
-        public static void EnsurePolicyAdded(this IMutableImageUrl url, string policyName)
+
+        public static void EnsurePolicyAdded(this IMutableQuerystring url, string policyName)
         {
             var policies = url.EnumerateAppliedPolicyNames();
             if (!policies.Contains(policyName))
@@ -54,7 +55,7 @@ namespace ImageResizer.Plugins.Security
             }
         }
 
-        public static void RemovePolicy(this IMutableImageUrl url, string policyName)
+        public static void RemovePolicy(this IMutableQuerystring url, string policyName)
         {
             var policies = url.EnumerateAppliedPolicyNames();
             if (policies.Contains(policyName, StringComparer.Ordinal))
