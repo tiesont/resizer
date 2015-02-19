@@ -179,10 +179,33 @@ namespace ImageResizer.Plugins.Security
                 if (i > 0) result.Append("&");
                 foreach (string value in values)
                 {
+                    //TODO bug? on duplicate keys where is the & to separate?
                     result.Append(k);
                     result.Append("=");
                     result.Append(UrlEncode(value));
                 }
+            }
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Returns a querystring minus the ?
+        /// </summary>
+        /// <param name="query"></param>
+        /// <returns></returns>
+        public string BuildQuery(IQuerystring query)
+        {
+            var result = new StringBuilder();
+            var pairs = query.GetQueryPairs().ToList();
+
+            for (var i = 0; i < pairs.Count(); i++)
+            {
+                if (i > 0) result.Append("&");
+
+                result.Append(UrlEncode(pairs[i].Item1));
+                result.Append("=");
+                result.Append(UrlEncode(pairs[i].Item2));
+
             }
             return result.ToString();
         }
