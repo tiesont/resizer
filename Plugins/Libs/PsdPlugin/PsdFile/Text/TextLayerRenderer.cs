@@ -84,11 +84,11 @@ namespace PhotoshopFile.Text
                 horizontal = tto.isTextHorizontal;
                 fontName = TdTaParser.getString(tto.StylesheetReader.getFontSet()[(int)TdTaParser.query(d,"Font")],"Name$");
                 fontSize = (double)TdTaParser.query(d,"FontSize");
-                fauxBold = TdTaParser.getBool(d,"FauxBold");
-                fauxItalic = TdTaParser.getBool(d,"FauxItalic");
-                underline = TdTaParser.getBool(d,"Underline");
-                strikethrough = TdTaParser.getBool(d,"Strikethrough");
-                int styleRunAlignment = (int)TdTaParser.query(d,"StyleRunAlignment");//No idea what this maps to.
+                fauxBold = TdTaParser.getBool(d,"FauxBold",false);
+                fauxItalic = TdTaParser.getBool(d, "FauxItalic", false);
+                underline = TdTaParser.getBool(d, "Underline", false);
+                strikethrough = TdTaParser.getBool(d, "Strikethrough", false);
+                int styleRunAlignment = (int)TdTaParser.query(d,"StyleRunAlignment",true, -1);//No idea what this maps to.
                 //string info = tto.TxtDescriptor.getString();
                 outlineWidth =  (double)TdTaParser.query(d,"OutlineWidth");
 

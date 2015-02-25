@@ -21,6 +21,7 @@ namespace PhotoshopFile.Text
         public static List<object> getList(object tree, string selector) { return (List< object>)query(tree, selector); }
         public static string getString(object tree, string selector) { return (string)query(tree, selector); }
         public static bool getBool(object tree, string selector) { return (bool)query(tree, selector); }
+        public static bool getBool(object tree, string selector, bool defaultValue) { return (bool)query(tree, selector, true, defaultValue); }
 
         public static Color getColor(object tree, string selector)
         {
@@ -36,6 +37,10 @@ namespace PhotoshopFile.Text
             List<object> values = d["Values"] as List<object>;
             return Color.FromArgb((int)((double)values[0] * 255),(int)((double)values[1] * 255),(int)((double)values[2] * 255),(int)( (double)values[3] * 255));
         }
+        public static object query(object tree, string selector)
+        {
+            return query(tree, selector, false, null);
+        }
         /// <summary>
         /// Navigates a tree, returning the selected object. supports dot and array notation. A trailing $ means to convert the byte array to a string.
         /// Objects can be primitive types, byte[] arrays, Dict(string,object), or List(objct)
@@ -43,7 +48,7 @@ namespace PhotoshopFile.Text
         /// <param name="tree"></param>
         /// <param name="selector"></param>
         /// <returns></returns>
-        public static object query(object tree, string selector)
+        public static object query(object tree, string selector, bool fallbackToDefault, object defaultValue)
         {
             //Null or empty gets the current obj.
             if (string.IsNullOrEmpty(selector)) return tree;
@@ -54,15 +59,26 @@ namespace PhotoshopFile.Text
             if (m != null && m.Success)
             {
                 string key = m.Groups["key"].Value;
-                return query(((Dictionary<string,object>)tree)[key], selector.Substring(m.Length));
+                if (!fallbackToDefault ||((Dictionary<string,object>)tree).ContainsKey(key)){
+                    return query(((Dictionary<string,object>)tree)[key], selector.Substring(m.Length),fallbackToDefault, defaultValue);
+                }else{
+                    return defaultValue;
+                }
             }
 
             //Check for array notation
             m = arrayNotation.Match(selector);
             if (m != null && m.Success)
             {
-                int index = int.Parse(m.Groups["index"].Value,NumberStyles.Integer,NumberFormatInfo.InvariantInfo);
-                return query(((List<object>)tree)[index], selector.Substring(m.Length));
+                int index = int.Parse(m.Groups["index"].Value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo);
+                if (!fallbackToDefault || ((List<object>)tree).Count > index)
+                {
+                    return query(((List<object>)tree)[index], selector.Substring(m.Length), fallbackToDefault, defaultValue);
+                }
+                else
+                {
+                    return defaultValue;
+                }
             }
 
             //Check for string notation
