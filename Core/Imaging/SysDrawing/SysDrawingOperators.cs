@@ -25,16 +25,9 @@ namespace ImageResizer.Imaging
 
           public PixelFormat SysDrawingPixelFormat()
           {
-              r.Format.
-              if (r.Format == BitmapPixelFormat.Indexed8) return PixelFormat.Format8bppIndexed;
-              if (r.PixelFormat == BitmapPixelFormat.Gray8) return PixelFormat.Format8bppIndexed;
-              if (r.PixelFormat == BitmapPixelFormat.Bgr24) return PixelFormat.Format24bppRgb;
 
-              if (r.PixelFormat == BitmapPixelFormat.Bgra32)
-              {
-                  if (r.RespectAlpha) return PixelFormat.Format32bppArgb;
-                  else return PixelFormat.Format32bppRgb;
-              }
+              if (r.Format.BitwiseFormat == BitmapPixelFormats.Indexed8b) return PixelFormat.Format8bppIndexed;
+              
               return PixelFormat.Undefined;
           }
     }

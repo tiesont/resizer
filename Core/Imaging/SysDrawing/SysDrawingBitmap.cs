@@ -36,7 +36,7 @@ namespace ImageResizer.Imaging
                     b.Value.SelectActiveFrame(ToDimensionGuid(ix.Item1), (int)ix.Item2);
                 }
             }
-            if (b.Value.PixelFormat == System.Drawing.Imaging.PixelFormat.)
+            //if (b.Value.PixelFormat == System.Drawing.Imaging.PixelFormat.)
             lastLockedFrame = new SysDrawingFrame(this);
             return lastLockedFrame;
         }

@@ -90,7 +90,10 @@ namespace ImageResizer.Imaging
         //    return fmt == BitmapPixelFormat.Bgra32 || fmt == BitmapPixelFormat.Indexed8;
         //}
 
-
+        public override void Close()
+        {
+            throw new NotImplementedException();
+        }
   
 
     }

@@ -24,12 +24,12 @@ namespace ImageResizer.Imaging
         int Height { get; }
 
         /// <summary>
-        /// The byte length of each row  (include unused padding, common for alignment or crop purposes)
+        /// The byte length of each row  (including unused padding, common for alignment or crop purposes)
         /// </summary>
         int Stride { get; }
 
         /// <summary>
-        /// pointer to the first byte in the region region; should be of length > h * stride
+        /// Pointer to the first byte in the region; should be of length > h * stride
         /// </summary>
         IntPtr Byte0 { get; }
 
@@ -66,6 +66,7 @@ namespace ImageResizer.Imaging
         /// <summary>
         /// Closes the region, potentially causing any changes to be 
         /// copied back into the parent frame (if an intermediate buffer was required).
+        /// Changes may be lost if MarkChanged() was not called.
         /// </summary>
         void Close();
     }

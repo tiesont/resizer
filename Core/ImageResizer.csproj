@@ -78,13 +78,7 @@
     <Compile Include="Collections\QuerystringBase.cs" />
     <Compile Include="Collections\ReadOnlyDictionary.cs" />
     <Compile Include="ExtensionMethods\Dictionary.cs" />
-    <Compile Include="Imaging\CommonPixelFormatList.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CommonPixelFormatList.tt</DependentUpon>
-    </Compile>
-    <Compile Include="Imaging\CommonPixelFormats.cs" />
-    <Compile Include="Imaging\CommonPixelGuids.cs" />
+    <Compile Include="Imaging\BitmapPixelFormats.cs" />
     <Compile Include="Imaging\ExtensionMethods.cs" />
     <Compile Include="Imaging\FrameDimension.cs" />
     <Compile Include="Imaging\IBitmapContainer.cs" />
@@ -215,6 +209,7 @@
     <Compile Include="Resizing\LayoutBuilder.cs" />
     <Compile Include="Plugins\Basic\SizeLimits.cs" />
     <Compile Include="Resizing\BitmapTag.cs" />
+    <Content Include="COPYRIGHT.txt" />
     <Content Include="Resizing\UnitR.cs.txt" />
     <Compile Include="Imaging\Managed\ManagedOperators.cs" />
     <Compile Include="Imaging\SysDrawing\SysDrawingOperators.cs" />
@@ -263,15 +258,8 @@
     <Content Include="bugs.txt" />
     <Content Include="exceptions.txt" />
     <Content Include="gdi-bugs.txt" />
-    <Content Include="license.txt" />
     <Content Include="plugin-notes.txt" />
     <Content Include="totest.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Imaging\CommonPixelFormatList.tt">
-      <Generator>TextTemplatingFilePreprocessor</Generator>
-      <LastGenOutput>CommonPixelFormatList.cs</LastGenOutput>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

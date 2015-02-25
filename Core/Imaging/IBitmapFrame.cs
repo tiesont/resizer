@@ -37,7 +37,7 @@ namespace ImageResizer.Imaging
 
         /// <summary>
         /// Returns true if it is permissible to call OpenRegion. 
-        /// Some implementations only permit one region per frame to be opened at a time.
+        /// Some implementations only permit one region per frame (or per bitmap!) to be opened at a time.
         /// This may be an expensive operation, especially if an intermediate buffer is required. Changes may not take effect until the region is Flushed.
         /// </summary>
         bool CanOpenRegion { get; }

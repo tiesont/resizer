@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ImageResizer.Imaging.SysDrawing
 {
-    public class ExtensionMethods
+    public static class ExtensionMethods
     {
         public static byte[] ToBgra(this Color c)
         {
@@ -19,7 +19,12 @@ namespace ImageResizer.Imaging.SysDrawing
 
         public static IPixelFormat GetStandardPixelFormat(this Bitmap b)
         {
-            return CommonPixelFormats.Format24bppBGR;
+            switch(b.PixelFormat){
+                case PixelFormat.Format32bppArgb:
+                    return new StandardPixelFormat( BitmapPixelFormats.Argb32b, BitmapPixelFormats.Bgra32b,32);
+
+            }
+            return new StandardPixelFormat(BitmapPixelFormats.None,4);
         }
 
         public static PixelFormat ToSysDrawingPixelFormat(this IPixelFormat f)

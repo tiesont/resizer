@@ -9,7 +9,10 @@ namespace ImageResizer.Imaging
 {
     public class SysDrawingFrame:IBitmapFrame
     {
+        public SysDrawingFrame()
+        {
 
+        }
         private SysDrawingContainer parent;
         protected SysDrawingContainer ParentBitmap { get { return parent; } }
         public SysDrawingFrame(SysDrawingContainer parent)
@@ -47,7 +50,7 @@ namespace ImageResizer.Imaging
             IsDisposed = true;
         }
 
-        public bool HasLockedBits { get; }
+        public bool HasLockedBits { get { return false; } } //TODO, fixme } }
 
         public IPixelFormat PixelFormat
         {

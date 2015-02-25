@@ -8,21 +8,23 @@ namespace ImageResizer.Imaging
 {
     public class StandardPixelFormat:IPixelFormat
     {
-        public Guid BitwiseId { get; private set; }
+        public BitmapPixelFormats BitwiseFormat { get; private set; }
 
-        public Guid BytewiseId { get; private set; }
+        public BitmapPixelFormats BytewiseFormat { get; private set; }
         public int BitsPerPixel { get; private set; }
 
-        public StandardPixelFormat(Guid bitwise, Guid bytewise, int bits)
+        public StandardPixelFormat(BitmapPixelFormats bitwise, BitmapPixelFormats bytewise, int bits)
         {
-            this.BitwiseId = bitwise;
+            this.BitwiseFormat = bitwise;
             this.BitsPerPixel = bits;
-            this.BytewiseId = bytewise;
+            this.BytewiseFormat = bytewise;
         }
-        public StandardPixelFormat(Guid both, int bits)
+        public StandardPixelFormat(BitmapPixelFormats both, int bits)
         {
-            this.BitwiseId = this.BytewiseId = both;
+            this.BitwiseFormat = this.BytewiseFormat = both;
             this.BitsPerPixel = bits;
         }
+
+   
     }
 }

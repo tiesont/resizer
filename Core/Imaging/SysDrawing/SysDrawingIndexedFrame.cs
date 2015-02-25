@@ -9,7 +9,11 @@ namespace ImageResizer.Imaging
 {
     public class SysDrawingIndexedFrame:SysDrawingFrame, IIndexedBitmapFrame
     {
-        public override byte[] GetPalette()
+        public SysDrawingIndexedFrame()
+        {
+
+        }
+        public  byte[] GetPalette()
         {
             var bit = this.ParentBitmap.DangerousCurrentBitmap;
             var colors = bit.Palette.Entries;
@@ -24,7 +28,7 @@ namespace ImageResizer.Imaging
             return bytes;
         }
 
-        public override void SetPalette(byte[] palette)
+        public  void SetPalette(byte[] palette)
         {
             var bit = this.ParentBitmap.DangerousCurrentBitmap;
             var count = palette.Length / 4;
@@ -41,5 +45,18 @@ namespace ImageResizer.Imaging
 
         public Guid PaletteFormat { get; set; }
         public Guid PaletteFormatLE { get; set; }
+
+
+        public IPixelFormat PalettePixelFormat
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
