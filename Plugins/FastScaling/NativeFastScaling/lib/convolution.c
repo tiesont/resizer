@@ -215,6 +215,131 @@ bool BitmapFloat_convolve_rows(Context * context, BitmapFloat * buf,  Convolutio
 }
 
 
+bool BitmapFloat_boxblur_rows (Context * context, BitmapFloat * buf, uint32_t radius, uint32_t passes, const uint32_t convolve_channels, ConvolutionKernel *kernel, uint32_t from_row, int row_count)
+{
+
+    //Do nothing unless the image is at least half as wide as the kernel.
+    if (buf->w < radius + 1) return true;
+
+    const uint32_t buffer_count = radius + 1;
+    const uint32_t w = buf->w;
+    const int32_t int_w = (int32_t)buf->w;
+    const uint32_t step = buf->channels;
+
+    const uint32_t until_row = row_count < 0 ? buf->h : from_row + (unsigned)row_count;
+
+    const uint32_t ch_used = buf->channels;
+
+
+    float* __restrict buffer = kernel->buffer;
+
+    if (kernel->radius < radius){
+        //We can't use the kernel's buffer because it is too small!
+        buffer = CONTEXT_calloc_array (context, buffer_count * ch_used, float);
+        if (buffer == NULL){
+            CONTEXT_error (context, Out_of_memory);
+            return false;
+        }
+    }
+
+    const int std_count = radius * 2 + 1;
+    const float std_factor = 1.0 / (float)(std_count);
+
+
+    for (uint32_t row = from_row; row < until_row; row++) {
+
+        float* __restrict source_buffer = &buf->pixels[row * buf->float_stride];
+
+        for (uint32_t pass_index = 0; pass_index < passes; pass_index++){
+            int circular_idx = 0;
+
+            float sum[4] = {0, 0, 0, 0};
+            uint32_t count = 0;
+
+            for (uint32_t ndx = 0; ndx < radius; ndx++) {
+                for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                    sum[ch] += source_buffer[ndx * step + ch];
+                }
+                count++;
+            }
+
+
+            for (uint32_t ndx = 0; ndx < w + buffer_count; ndx++) {
+
+                if (ndx >= buffer_count) { // same as ndx > radius
+
+                    //Remove trailing item from average
+                    for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                        sum[ch] -= source_buffer[(ndx - radius - 1) * step + ch];
+                    }
+                    count--;
+
+                    //Flush old value
+                    memcpy (&source_buffer[(ndx - buffer_count) * step], &buffer[circular_idx * ch_used], ch_used * sizeof (float));
+
+                }
+                //Calculate and enqueue new value
+                if (ndx < w) {
+                    if (ndx < w - radius){
+                        for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                            sum[ch] += source_buffer[(ndx + radius) * step + ch];
+                        }
+                        count++;
+                    }
+
+
+                    if (count != std_count){
+                        //Enqueue averaged value, recomputing factor
+                        for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                            buffer[circular_idx * ch_used + ch] = sum[ch]  / (float)count;
+                        }
+                    }
+                    else{
+                        //Enqueue averaged value
+                        for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                            buffer[circular_idx * ch_used + ch] = sum[ch] * std_factor;
+                        }
+                    }
+                }
+                circular_idx = (circular_idx + 1) % buffer_count;
+
+            }
+        }
+    }
+    return true;
+}
+
+
+bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf, float sigma, ConvolutionKernel *kernel, uint32_t from_row, int row_count)
+{
+     //http://www.w3.org/TR/SVG11/filters.html#feGaussianBlur
+    // For larger values of 's' (s >= 2.0), an approximation can be used :
+    // Three successive box - blurs build a piece - wise quadratic convolution kernel, which approximates the Gaussian kernel to within roughly 3 % .
+
+    const uint32_t d = (int)floorf (1.8799712059732503768118239636082839397552400554574537 * sigma + 0.5);
+    //... if d is odd, use three box - blurs of size 'd', centered on the output pixel.
+    if (d % 2 > 0){
+        if (!BitmapFloat_boxblur_rows (context, buf, d / 2, 3, buf->channels == 4 ? 4 : buf->channels == 3 ? 3 : -1,  kernel, from_row, row_count)){
+            CONTEXT_error_return (context);
+        }
+    }
+    else{
+        // ... if d is even, two box - blurs of size 'd'
+        // (the first one centered on the pixel boundary between the output pixel and the one to the left,
+        //  the second one centered on the pixel boundary between the output pixel and the one to the right)
+        // and one box blur of size 'd+1' centered on the output pixel.
+
+        //We're cheating, pixel alignment would be tricky. Just make it 2px blurrier
+        if (!BitmapFloat_boxblur_rows (context, buf, (d + 1) / 2, 3, buf->channels == 4 ? 4 : buf->channels == 3 ? 3 : -1, kernel, from_row, row_count)){
+            CONTEXT_error_return (context);
+        }
+    }
+
+    return true;
+}
+
+
+
 /*
 static void BgraSharpenInPlaceX(BitmapBgra * im, float pct)
 {
@@ -308,7 +433,7 @@ bool BitmapFloat_sharpen_rows(Context * context, BitmapFloat * im, uint32_t star
 {
     if (!(start_row + row_count <= im->h)) {
         CONTEXT_error(context, Invalid_internal_state);
-        return false;        
+        return false;
     }
     for (uint32_t row = start_row; row < start_row + row_count; row++) {
         SharpenBgraFloatInPlace(im->pixels + (im->float_stride * row), im->w, pct, im->channels);

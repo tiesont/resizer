@@ -172,6 +172,7 @@ bool BitmapFloat_convolve_rows(Context * context, BitmapFloat * buf, Convolution
 
 bool BitmapFloat_sharpen_rows(Context * context, BitmapFloat * im, uint32_t start_row, uint32_t row_count, double pct);
 
+bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf, float sigma, ConvolutionKernel *kernel, uint32_t from_row, int row_count);
 
 bool BitmapBgra_convert_srgb_to_linear(Context * context,
                                        BitmapBgra * src,

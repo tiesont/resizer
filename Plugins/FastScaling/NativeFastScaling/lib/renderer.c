@@ -290,11 +290,27 @@ static bool Renderer_complete_halving(Context * context, Renderer * r)
 
 static bool ApplyConvolutionsFloat1D(Context * context, const Renderer * r, BitmapFloat * img, const uint32_t from_row, const uint32_t row_count, double sharpening_applied)
 {
+
+
+
+
+
     if (r->details->kernel_a != NULL){
         prof_start (context, "convolve kernel a", false);
-        if (!BitmapFloat_convolve_rows (context, img, r->details->kernel_a, img->channels, from_row, row_count)) {
-            CONTEXT_add_to_callstack (context);
-            return false;
+
+        if (r->details->kernel_a_approx_blur_sigma > 0){
+            prof_start (context, "approx_gaussian_blur_rows", false);
+            if (!BitmapFloat_approx_gaussian_blur_rows (context, img, r->details->kernel_a_approx_blur_sigma, r->details->kernel_a, from_row, row_count)) {
+                CONTEXT_add_to_callstack (context);
+                return false;
+            }
+            prof_stop (context, "approx_gaussian_blur_rows", true, false);
+        }
+        else{
+            if (!BitmapFloat_convolve_rows (context, img, r->details->kernel_a, img->channels, from_row, row_count)) {
+                CONTEXT_add_to_callstack (context);
+                return false;
+            }
         }
         prof_stop (context, "convolve kernel a", true, false);
     }

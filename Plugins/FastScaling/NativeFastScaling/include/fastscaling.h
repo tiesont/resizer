@@ -163,6 +163,7 @@ typedef struct RenderDetailsStruct {
     //A second convolution to apply
     ConvolutionKernel * kernel_b;
 
+    float kernel_a_approx_blur_sigma;
 
     //If greater than 0, a percentage to sharpen the result along each axis;
     float sharpen_percent_goal;
