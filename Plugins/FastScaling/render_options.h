@@ -47,6 +47,7 @@ namespace ImageResizer{
 
                         InterpolateLastPercent = 3;
                         HalvingAcceptablePixelLoss = 0;
+                        KernelA_ApproxBlurSigma = 0;
                     }
 
 
@@ -55,6 +56,7 @@ namespace ImageResizer{
                     property float ColorspaceParamB;
                     property float ColorspaceParamC;
 
+                    property float KernelA_ApproxBlurSigma;
 
                     property uint32_t Filter;
                     property float SamplingWindowOverride;

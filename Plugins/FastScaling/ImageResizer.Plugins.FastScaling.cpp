@@ -43,30 +43,39 @@ namespace ImageResizer{
                     }*/
 
 
+                    BlurType btype = NameValueCollectionExtensions::Get<internal_use_only::BlurType> (query, "f.blur.type",  BlurType::Auto);
 
-                    int kernel_radius = (int)GetDouble (query, "f.gblur.pixels", 0);
 
-                    double gblur_percent = GetDouble (query, "f.gblur.percent", 0);
+
+                    int kernel_radius = (int)GetDouble (query, "f.blur.pixels", 0);
+
+
+                    double gblur_percent = GetDouble (query, "f.blur.percent", 0);
                     double gblur_sigma = 0;
 
                     if (gblur_percent > 0){
                         gblur_sigma = (gblur_percent * 0.0025 * (double)target_dimension) / 2.35482; //Percentage should describe width of guassian functiom at half-maximum impulse.
                     }
 
-                     gblur_sigma = GetDouble (query, "f.gblur.sigma", gblur_sigma);
+                    gblur_sigma = GetDouble (query, "f.blur.sigma", gblur_sigma);
 
                     if (kernel_radius > 0 || gblur_sigma > 0){
 
                         if (kernel_radius < 1){
-                            kernel_radius = Math::Min(1,(int)Math::Ceiling (gblur_sigma * 3.11513411073090629014797467185716068837128426554157826035269 - 0.5)); //Should provide at least 7 bits of precision, and almost always 8.
+                            kernel_radius = Math::Max(1,(int)Math::Ceiling (gblur_sigma * 3.11513411073090629014797467185716068837128426554157826035269 - 0.5)); //Should provide at least 7 bits of precision, and almost always 8.
                         }
                         if (gblur_sigma <= 0){
-                            gblur_sigma = (kernel_radius + 1.0) / 3.329;
+                            gblur_sigma = (kernel_radius + 0.5) / 3.329;
                         }
                         //Never make it larger than the smallest dimension, or it will only be applied in one dimension.
                         kernel_radius = Math::Min (kernel_radius, (target_dimension - 1) / 2);
 
+
                         addTo->KernelA_Struct = ConvolutionKernel_create_guassian_normalized (c->GetContext (), gblur_sigma, kernel_radius);
+
+                        if (btype == BlurType::Box3 || btype == BlurType::Auto && gblur_sigma > 2){
+                            addTo->KernelA_ApproxBlurSigma = gblur_sigma;
+                        }
 
                     }
 
@@ -177,9 +186,9 @@ namespace ImageResizer{
                     }
 
                     if (System::String::IsNullOrEmpty (query->Get ("f.sharpen")) &&
-                        System::String::IsNullOrEmpty (query->Get ("f.gblur.percent")) &&
-                        System::String::IsNullOrEmpty (query->Get ("f.gblur.radius")) &&
-                        System::String::IsNullOrEmpty (query->Get ("f.gblur.sigma")) && (fastScale == nullptr || fastScale->ToLowerInvariant () != sTrue)){
+                        System::String::IsNullOrEmpty (query->Get ("f.blur.percent")) &&
+                        System::String::IsNullOrEmpty (query->Get ("f.blur.radius")) &&
+                        System::String::IsNullOrEmpty (query->Get ("f.blur.sigma")) && (fastScale == nullptr || fastScale->ToLowerInvariant () != sTrue)){
 						return RequestedAction::None;
 					}
 
@@ -272,7 +281,7 @@ namespace ImageResizer{
 				}
 
                 virtual System::Collections::Generic::IEnumerable<System::String^>^ GetSupportedQuerystringKeys (){
-                    return gcnew array < String^, 1 > {"f.sharpen","f.gblur.percent", "f.gblur.radius", "f.gblur.sigma"}; //Only list the keys that would activate image processing by themselves, in the absence of any other commands
+                    return gcnew array < String^, 1 > {"f.sharpen","f.blur.percent", "f.blur.radius", "f.blur.sigma"}; //Only list the keys that would activate image processing by themselves, in the absence of any other commands
                 }
 
 			};

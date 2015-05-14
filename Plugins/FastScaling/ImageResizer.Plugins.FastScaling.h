@@ -40,6 +40,12 @@ namespace ImageResizer{
                     Rotate270 = 3
                 };
 
+                public enum struct BlurType{
+                    Auto = 0,
+                    Guassian = 1,
+                    Box3 = 2
+                };
+
                 public ref class ExecutionContext{
                 public:
                     ExecutionContext (){

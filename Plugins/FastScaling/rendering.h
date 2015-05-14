@@ -78,7 +78,7 @@ namespace ImageResizer{
                             from->KernelB != nullptr ? CopyKernel (from->KernelB) : nullptr;
 
                         to->interpolate_last_percent = (float)from->InterpolateLastPercent;
-
+                        to->kernel_a_approx_blur_sigma = from->KernelA_ApproxBlurSigma;
 
                         if (to->interpolation != nullptr){
                             InterpolationDetails_destroy (c->GetContext (), to->interpolation);
