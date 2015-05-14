@@ -30,7 +30,7 @@ namespace ImageResizer{
 
 			public ref class FastScalingPlugin : public ImageResizer::Resizing::BuilderExtension, IPlugin, IQuerystringPlugin
 			{
-                void SetupConvolutions(ExecutionContext^ c, NameValueCollection ^query, RenderOptions^ addTo){
+                void SetupConvolutions(ExecutionContext^ c, NameValueCollection ^query, RenderOptions^ addTo, int target_dimension){
                     //No unsharp mask support until it is higher quality
           /*          int kernel_radius = (int)GetDouble(query, "f.unsharp.radius", 0);
                     double unsharp_sigma = GetDouble (query, "f.unsharp.sigma", 1.4);
@@ -41,6 +41,34 @@ namespace ImageResizer{
                         addTo->KernelA_Struct = ConvolutionKernel_create_guassian_sharpen (c->GetContext (), unsharp_sigma, kernel_radius);
 
                     }*/
+
+
+
+                    int kernel_radius = (int)GetDouble (query, "f.gblur.pixels", 0);
+
+                    double gblur_percent = GetDouble (query, "f.gblur.percent", 0);
+                    double gblur_sigma = 0;
+
+                    if (gblur_percent > 0){
+                        gblur_sigma = (gblur_percent * 0.0025 * (double)target_dimension) / 2.35482; //Percentage should describe width of guassian functiom at half-maximum impulse.
+                    }
+
+                     gblur_sigma = GetDouble (query, "f.gblur.sigma", gblur_sigma);
+
+                    if (kernel_radius > 0 || gblur_sigma > 0){
+
+                        if (kernel_radius < 1){
+                            kernel_radius = Math::Min(1,(int)Math::Ceiling (gblur_sigma * 3.11513411073090629014797467185716068837128426554157826035269 - 0.5)); //Should provide at least 7 bits of precision, and almost always 8.
+                        }
+                        if (gblur_sigma <= 0){
+                            gblur_sigma = (kernel_radius + 1.0) / 3.329;
+                        }
+                        //Never make it larger than the smallest dimension, or it will only be applied in one dimension.
+                        kernel_radius = Math::Min (kernel_radius, (target_dimension - 1) / 2);
+
+                        addTo->KernelA_Struct = ConvolutionKernel_create_guassian_normalized (c->GetContext (), gblur_sigma, kernel_radius);
+
+                    }
 
                 }
 			protected:
@@ -148,7 +176,10 @@ namespace ImageResizer{
                         throw gcnew Exception ("&f is deprecated. Used &down.filter instead.");
                     }
 
-                    if (System::String::IsNullOrEmpty (query->Get ("f.sharpen")) && (fastScale == nullptr || fastScale->ToLowerInvariant () != sTrue)){
+                    if (System::String::IsNullOrEmpty (query->Get ("f.sharpen")) &&
+                        System::String::IsNullOrEmpty (query->Get ("f.gblur.percent")) &&
+                        System::String::IsNullOrEmpty (query->Get ("f.gblur.radius")) &&
+                        System::String::IsNullOrEmpty (query->Get ("f.gblur.sigma")) && (fastScale == nullptr || fastScale->ToLowerInvariant () != sTrue)){
 						return RequestedAction::None;
 					}
 
@@ -209,7 +240,7 @@ namespace ImageResizer{
 
                         ExecutionContext^ context = gcnew ExecutionContext ();
                         try{
-                            SetupConvolutions (context, query, opts);
+                            SetupConvolutions (context, query, opts, Math::Min(b->Crop.Width, b->Crop.Height));
                             ManagedRenderer^ renderer;
                             try{
                                 renderer = gcnew ManagedRenderer (context, a, b, opts, s->Job->Profiler);
@@ -241,7 +272,7 @@ namespace ImageResizer{
 				}
 
                 virtual System::Collections::Generic::IEnumerable<System::String^>^ GetSupportedQuerystringKeys (){
-                    return gcnew array < String^, 1 > {"f.sharpen"}; //Only list the keys that would activate image processing by themselves, in the absence of any other commands
+                    return gcnew array < String^, 1 > {"f.sharpen","f.gblur.percent", "f.gblur.radius", "f.gblur.sigma"}; //Only list the keys that would activate image processing by themselves, in the absence of any other commands
                 }
 
 			};
