@@ -43,7 +43,7 @@ namespace ImageResizer{
                     }*/
 
 
-                    BlurType btype = NameValueCollectionExtensions::Get<internal_use_only::BlurType> (query, "f.blur.type",  BlurType::Auto);
+                    BlurType btype = NameValueCollectionExtensions::Get<BlurType> (query, "f.blur.type",  BlurType::BlurType_Auto);
 
 
 
@@ -72,7 +72,7 @@ namespace ImageResizer{
 
 
 
-                        if (btype == BlurType::Box3 || btype == BlurType::Auto && gblur_sigma > 2){
+                        if (btype == BlurType::BlurType_Box3 || btype == BlurType::BlurType_Auto && gblur_sigma > 2){
                             addTo->KernelA_ApproxBlurSigma = gblur_sigma;
 
                             int estimated_box_radius = (int)Math::Floor (1.9 * gblur_sigma + 0.5);

@@ -40,10 +40,11 @@ namespace ImageResizer{
                     Rotate270 = 3
                 };
 
+                [ImageResizer::ExtensionMethods::EnumRemovePrefixAttribute ("BlurType_")]
                 public enum struct BlurType{
-                    Auto = 0,
-                    Guassian = 1,
-                    Box3 = 2
+                    BlurType_Auto = 0,
+                    BlurType_Gaussian = 1,
+                    BlurType_Box3 = 2
                 };
 
                 public ref class ExecutionContext{
