@@ -330,7 +330,7 @@ static bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat 
                     }
                     count+= 0.5f;
                 }
-                if (ndx - 1 < w - radius){
+                if (ndx < w - radius + 1){
                     for (uint32_t ch = 0; ch < convolve_channels; ch++){
                         sum[ch] += source_buffer[(ndx - 1 + radius) * step + ch] * 0.5f;
                     }
@@ -345,7 +345,7 @@ static bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat 
                     }
                     count-= 0.5f;
                 }
-                if (ndx - 1 >= radius ){
+                if (ndx  >= radius + 1){
                     for (uint32_t ch = 0; ch < convolve_channels; ch++){
                         sum[ch] -= source_buffer[(ndx - 1 - radius) * step + ch] * 0.5f;
                     }
@@ -354,7 +354,7 @@ static bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat 
 
             }
             //Flush old value
-            if (ndx + write_offset  >= buffer_count) {
+            if (ndx   >= buffer_count - write_offset) {
                 memcpy (&source_buffer[(ndx + write_offset - buffer_count) * step], &buffer[circular_idx * ch_used], ch_used * sizeof (float));
 
             }
