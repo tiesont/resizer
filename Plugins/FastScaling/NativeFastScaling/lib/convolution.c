@@ -289,6 +289,92 @@ bool BitmapFloat_boxblur_rows (Context * context, BitmapFloat * buf, uint32_t ra
 }
 
 
+bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat * buf, uint32_t radius, uint32_t align, const uint32_t convolve_channels, ConvolutionKernel *kernel, uint32_t from_row, int row_count)
+{
+    if (align != 1 && align != -1){
+        CONTEXT_error (context, Invalid_internal_state);
+        return false;
+    }
+
+    const uint32_t buffer_count = radius + 2;
+    const uint32_t w = buf->w;
+    const uint32_t step = buf->channels;
+    const uint32_t until_row = row_count < 0 ? buf->h : from_row + (unsigned)row_count;
+    const uint32_t ch_used = buf->channels;
+    float* __restrict buffer = kernel->buffer;
+
+    const uint32_t write_offset = align == -1 ? -1 : 0;
+
+    for (uint32_t row = from_row; row < until_row; row++) {
+        float* __restrict source_buffer = &buf->pixels[row * buf->float_stride];
+        int circular_idx = 0;
+
+        float sum[4] = {0, 0, 0, 0};
+        float count = 0;
+
+        for (uint32_t ndx = 0; ndx < radius; ndx++) {
+            float factor = (ndx == radius - 1) ? 0.5 : 1;
+            for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                sum[ch] += source_buffer[ndx * step + ch] * factor;
+            }
+            count += factor;
+        }
+
+        for (uint32_t ndx = 0; ndx < w + buffer_count; ndx++) { //Pixels
+
+            //Calculate new value
+            if (ndx < w) {
+                if (ndx < w - radius){
+                    for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                        sum[ch] += source_buffer[(ndx + radius) * step + ch] * 0.5;
+                    }
+                    count+= 0.5;
+                }
+                if (ndx - 1 < w - radius){
+                    for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                        sum[ch] += source_buffer[(ndx - 1 + radius) * step + ch] * 0.5;
+                    }
+                    count += 0.5;
+                }
+
+                //Remove trailing items from average
+                if (ndx >= radius){
+
+                    for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                        sum[ch] -= source_buffer[(ndx - radius) * step + ch] * 0.5;
+                    }
+                    count-= 0.5;
+                }
+                if (ndx - 1 >= radius ){
+                    for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                        sum[ch] -= source_buffer[(ndx - 1 - radius) * step + ch] * 0.5;
+                    }
+                    count -= 0.5;
+                }
+
+            }
+            //Flush old value
+            if (ndx + write_offset  >= buffer_count) {
+                memcpy (&source_buffer[(ndx + write_offset - buffer_count) * step], &buffer[circular_idx * ch_used], ch_used * sizeof (float));
+
+            }
+            //enqueue new value
+            if (ndx < w) {
+                for (uint32_t ch = 0; ch < convolve_channels; ch++){
+                    buffer[circular_idx * ch_used + ch] = sum[ch] / (float)count;
+                }
+            }
+            circular_idx = (circular_idx + 1) % buffer_count;
+
+        }
+    }
+
+    return true;
+}
+
+
+
+
 bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf, float sigma, ConvolutionKernel *kernel, uint32_t from_row, int row_count)
 {
      //http://www.w3.org/TR/SVG11/filters.html#feGaussianBlur
@@ -307,7 +393,10 @@ bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf
         return false;
     }
 
-   
+    if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, -1, buf->channels, kernel, from_row, row_count)){
+        CONTEXT_error_return (context);
+    }
+    return true;
 
     //... if d is odd, use three box - blurs of size 'd', centered on the output pixel.
     if (d % 2 > 0){
@@ -321,8 +410,14 @@ bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf
         //  the second one centered on the pixel boundary between the output pixel and the one to the right)
         // and one box blur of size 'd+1' centered on the output pixel.
 
-        //We're cheating, pixel alignment would be tricky. Just make it 2px blurrier
-        if (!BitmapFloat_boxblur_rows (context, buf,max_radius, 3, buf->channels, kernel, from_row, row_count)){
+        if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, -1, buf->channels, kernel, from_row, row_count)){
+            CONTEXT_error_return (context);
+        }
+
+        if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, 1, buf->channels, kernel, from_row, row_count)){
+            CONTEXT_error_return (context);
+        }
+        if (!BitmapFloat_boxblur_rows (context, buf, max_radius, 1, buf->channels == 4, kernel, from_row, row_count)){
             CONTEXT_error_return (context);
         }
     }
