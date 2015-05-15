@@ -21,6 +21,8 @@ bool test (int sx, int sy, BitmapPixelFormat sbpp, int cx, int cy, BitmapPixelFo
     details->post_transpose = transpose;
     details->enable_profiling = profile;
 
+    details->kernel_a = ConvolutionKernel_create_guassian_normalized(&context, 3.4f, floorf(3.4f * 1.9f + 0.5f));
+    details->kernel_a_approx_blur_sigma = 3.4f;
     //Should we even have Renderer_* functions, or just 1 call that does it all?
     //If we add memory use estimation, we should keep Renderer
 
