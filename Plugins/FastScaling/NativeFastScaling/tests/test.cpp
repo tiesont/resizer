@@ -5,7 +5,7 @@
 #include "trim_whitespace.h"
 #include "string.h"
 
-bool test (int sx, int sy, BitmapPixelFormat sbpp, int cx, int cy, BitmapPixelFormat cbpp, bool transpose, bool flipx, bool flipy, bool profile, InterpolationFilter filter)
+bool test (int sx, int sy, BitmapPixelFormat sbpp, int cx, int cy, BitmapPixelFormat cbpp, bool transpose, bool flipx, bool flipy, bool profile, InterpolationFilter filter, float blur_sigma)
 {
     Context context;
     Context_initialize(&context);
@@ -21,8 +21,11 @@ bool test (int sx, int sy, BitmapPixelFormat sbpp, int cx, int cy, BitmapPixelFo
     details->post_transpose = transpose;
     details->enable_profiling = profile;
 
-    details->kernel_a = ConvolutionKernel_create_guassian_normalized(&context, 3.4f, floorf(3.4f * 1.9f + 0.5f));
-    details->kernel_a_approx_blur_sigma = 3.4f;
+    if (blur_sigma > 0){
+        details->kernel_a = ConvolutionKernel_create_guassian_normalized (&context, blur_sigma, floorf (blur_sigma * 1.9f + 0.5f));
+        if (details->kernel_a == NULL) return false;
+        details->kernel_a_approx_blur_sigma = blur_sigma;
+    }
     //Should we even have Renderer_* functions, or just 1 call that does it all?
     //If we add memory use estimation, we should keep Renderer
 
@@ -70,27 +73,38 @@ const InterpolationFilter DEFAULT_FILTER = Filter_Robidoux;
 
 TEST_CASE( "Render without crashing", "[fastscaling]")
 {
-    REQUIRE (test (400, 300, Bgra32, 200, 40, Bgra32, false, false, false, false, DEFAULT_FILTER));
+    REQUIRE (test (400, 300, Bgra32, 200, 40, Bgra32, false, false, false, false, DEFAULT_FILTER, 0));
 }
+
+TEST_CASE ("Blur even", "[fastscaling]")
+{
+    REQUIRE (test (400, 300, Bgra32, 200, 40, Bgra32, false, false, false, false, DEFAULT_FILTER, 2));
+}
+
+TEST_CASE ("Blur odd", "[fastscaling]")
+{
+    REQUIRE (test (400, 300, Bgra32, 200, 40, Bgra32, false, false, false, false, DEFAULT_FILTER, 4.5f));
+}
+
 
 TEST_CASE( "Render - upscale", "[fastscaling]")
 {
-    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, false, false, false, false, DEFAULT_FILTER));
+    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, false, false, false, false, DEFAULT_FILTER, 0));
 }
 
 TEST_CASE("Render - downscale 24->32", "[fastscaling]")
 {
-    REQUIRE (test (400, 200, Bgr24, 200, 100, Bgra32, false, false, false, false, DEFAULT_FILTER));
+    REQUIRE (test (400, 200, Bgr24, 200, 100, Bgra32, false, false, false, false, DEFAULT_FILTER, 0));
 }
 
 TEST_CASE("Render and rotate", "[fastscaling]")
 {
-    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, true, true, true, false, DEFAULT_FILTER));
+    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, true, true, true, false, DEFAULT_FILTER, 0));
 }
 
 TEST_CASE("Render and rotate with profiling", "[fastscaling]")
 {
-    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, true, true, true, true, DEFAULT_FILTER));
+    REQUIRE (test (200, 40, Bgra32, 500, 300, Bgra32, true, true, true, true, DEFAULT_FILTER, 0));
 }
 
 TEST_CASE ("Flip in place", "[fastscaling]")
