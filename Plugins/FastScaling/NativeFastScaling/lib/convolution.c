@@ -303,7 +303,7 @@ static bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat 
     const uint32_t ch_used = buf->channels;
     float* __restrict buffer = kernel->buffer;
 
-    const uint32_t write_offset = align == -1 ? -1 : 0;
+    const uint32_t write_offset = align == -1 ? 0 : 1;
 
     for (uint32_t row = from_row; row < until_row; row++) {
         float* __restrict source_buffer = &buf->pixels[row * buf->float_stride];
@@ -320,7 +320,7 @@ static bool BitmapFloat_boxblur_misaligned_rows (Context * context, BitmapFloat 
             count += factor;
         }
 
-        for (uint32_t ndx = 0; ndx < w + buffer_count; ndx++) { //Pixels
+        for (uint32_t ndx = 0; ndx < w + buffer_count - write_offset; ndx++) { //Pixels
 
             //Calculate new value
             if (ndx < w) {
@@ -393,10 +393,7 @@ bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf
         return false;
     }
 
-    if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, -1, buf->channels, kernel, from_row, row_count)){
-        CONTEXT_error_return (context);
-    }
-    return true;
+
 
     //... if d is odd, use three box - blurs of size 'd', centered on the output pixel.
     if (d % 2 > 0){
@@ -410,14 +407,15 @@ bool BitmapFloat_approx_gaussian_blur_rows (Context * context, BitmapFloat * buf
         //  the second one centered on the pixel boundary between the output pixel and the one to the right)
         // and one box blur of size 'd+1' centered on the output pixel.
 
+
+
         if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, -1, buf->channels, kernel, from_row, row_count)){
             CONTEXT_error_return (context);
         }
-
         if (!BitmapFloat_boxblur_misaligned_rows (context, buf, max_radius, 1, buf->channels, kernel, from_row, row_count)){
             CONTEXT_error_return (context);
         }
-        if (!BitmapFloat_boxblur_rows (context, buf, max_radius, 1, buf->channels == 4, kernel, from_row, row_count)){
+        if (!BitmapFloat_boxblur_rows (context, buf, max_radius, 1, buf->channels, kernel, from_row, row_count)){
             CONTEXT_error_return (context);
         }
     }
