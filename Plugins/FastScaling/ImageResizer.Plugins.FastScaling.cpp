@@ -71,11 +71,19 @@ namespace ImageResizer{
                         kernel_radius = Math::Min (kernel_radius, (target_dimension - 1) / 2);
 
 
-                        addTo->KernelA_Struct = ConvolutionKernel_create_guassian_normalized (c->GetContext (), gblur_sigma, kernel_radius);
 
                         if (btype == BlurType::Box3 || btype == BlurType::Auto && gblur_sigma > 2){
                             addTo->KernelA_ApproxBlurSigma = gblur_sigma;
+
+                            int estimated_box_radius = (int)Math::Floor (1.9 * gblur_sigma + 0.5);
+                            addTo->KernelA_Struct = ConvolutionKernel_create_guassian_normalized (c->GetContext (), gblur_sigma, Math::Max (estimated_box_radius, kernel_radius));
+
                         }
+                        else{
+                            addTo->KernelA_Struct = ConvolutionKernel_create_guassian_normalized (c->GetContext (), gblur_sigma, kernel_radius);
+
+                        }
+
 
                     }
 
