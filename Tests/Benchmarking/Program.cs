@@ -63,7 +63,8 @@ namespace Bench
            // CompareFastScalingToDefaultHQ("bit");
 
             //CompareFastScalingSpeeds("bit");
-            CompareFastScalingToDefault("bit");
+            //CompareFastScalingToAdvancedFilters("bit");
+            CompareFastScalingToAdvancedFiltersSharpen("bit");
 
             Console.Write("Done\n");
             Console.ReadKey();
@@ -431,6 +432,46 @@ namespace Bench
                     new Tuple<Config, Instructions, string>(ConfigWithPlugins(),null,"System.Drawing"),
                     new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.FastScaling.FastScalingPlugin, ImageResizer.Plugins.FastScaling"),new Instructions("fastscale=true;&down.speed=5&f.ignorealpha=true"),"FastScaling speed prioritized"),
                     new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.FastScaling.FastScalingPlugin, ImageResizer.Plugins.FastScaling"),new Instructions("fastscale=true"),"FastScaling quality optimized")};
+
+            Compare(settings, configs.Reverse());
+
+
+        }
+
+
+        public static void CompareFastScalingToAdvancedFilters(string segment = "op")
+        {
+            var settings = BenchmarkingDefaults();
+            settings.Images.AddBlankImages(
+                new Tuple<int, int, string>[] { new Tuple<int, int, string>(1600, 1600, "png") });
+            settings.SharedInstructions = new Instructions[]{new Instructions(
+                "width=800") , new Instructions("width=200")};
+
+            settings.SegmentNameFilter = segment;
+            settings.ExclusiveTimeSignificantMs = 1;
+            var configs = new Tuple<Config, Instructions, string>[]{
+                    new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.AdvancedFilters.AdvancedFilters, ImageResizer.Plugins.AdvancedFilters"),new Instructions("a.blur=500"),"System.Drawing+AdvancedFilters"),
+                    new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.FastScaling.FastScalingPlugin, ImageResizer.Plugins.FastScaling"),new Instructions("f.blur.percent=500"),"FastScaling blur")};
+
+            Compare(settings, configs.Reverse());
+
+
+        }
+
+
+        public static void CompareFastScalingToAdvancedFiltersSharpen(string segment = "op")
+        {
+            var settings = BenchmarkingDefaults();
+            settings.Images.AddBlankImages(
+                new Tuple<int, int, string>[] { new Tuple<int, int, string>(1600, 1600, "png") });
+            settings.SharedInstructions = new Instructions[]{new Instructions(
+                "width=800") , new Instructions("width=200")};
+
+            settings.SegmentNameFilter = segment;
+            settings.ExclusiveTimeSignificantMs = 1;
+            var configs = new Tuple<Config, Instructions, string>[]{
+                    new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.AdvancedFilters.AdvancedFilters, ImageResizer.Plugins.AdvancedFilters"),new Instructions("a.sharpen=500"),"System.Drawing+AdvancedFilters"),
+                    new Tuple<Config, Instructions, string>(ConfigWithPlugins("ImageResizer.Plugins.FastScaling.FastScalingPlugin, ImageResizer.Plugins.FastScaling"),new Instructions("f.sharpen=500"),"FastScaling blur")};
 
             Compare(settings, configs.Reverse());
 
