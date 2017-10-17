@@ -1,0 +1,38 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<div class="row">
+    <div class="col-xs-6">
+        <h4>PDF</h4>
+        <embed src="~/Content/Test.pdf" height="600" width="500" />
+    </div>
+    <div class="col-xs-6">
+        <h4>PNG</h4>
+        <figure>
+            <figcaption>No page, Width 500 pixels</figcaption>
+            <img alt="" src="~/Content/Test.pdf?format=png&width=500" style="border: solid 1px #999;" />
+        </figure>
+    </div>
+</div>
+
+<hr />
+
+<h4>PNG</h4>
+<div class="row">
+    <div class="col-xs-6">
+        <figure>
+            <figcaption>Page 1, Width 500 pixels</figcaption>
+            <img alt="" src="~/Content/Test.pdf?format=png&width=500&page=1" style="border: solid 1px #999;" />
+        </figure>
+    </div>
+    <div class="col-xs-6">
+        <figure>
+            <figcaption>Page 2, Width 500 pixels</figcaption>
+            <img alt="" src="~/Content/Test.pdf?format=png&width=500&page=2" style="border: solid 1px #999;" />
+        </figure>
+    </div>
+</div>
